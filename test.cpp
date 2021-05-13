@@ -30,13 +30,12 @@ int main(){
     std::cout << "\n--------\n\n";
     root.assignSubtreeSizes();
     root.assignApex();
-    root.assignLevels(false);
+    root.assignLevels();
 
     root.print();
     std::cout << "\n--------\n\n";
 
     root.compressTree();
-    root.assignLevels(true);
     root.print();
     std::cout << "\n--------\n\n";
 
@@ -46,7 +45,13 @@ int main(){
 
     root.fillAllAncestors();
     root.printAncestors(0);
+    std::cout << "\n--------\n\n";
 
-    TreeNode::lcaCompressed(&node1L, &node1R);
+    TreeNode::lca(&node1L, &node1R); //0
+    TreeNode::lca(&node4R, &node4L); //3
+    TreeNode::lca(&node5, &node4L); //3
+    TreeNode::lca(&node2, &node4L); //2
+    TreeNode::lca(&node1L, &node4L); //0
+
     return 0;
 }

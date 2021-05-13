@@ -23,7 +23,6 @@ class TreeNode {
         bool isApex;
         TreeNode* closestApex;
         int uncompressedLevel;
-        int level;
 
         // variables for the fat preorder numbering 
         int start;
@@ -54,7 +53,7 @@ class TreeNode {
         void fillAncestorTable();
         void printAncestors(int level = 0);
 
-        void assignLevels(bool compressed, int level = 0);
+        void assignLevels(int level = 0);
         
         // Query
         static TreeNode* lca(TreeNode* nodeA, TreeNode* nodeB);

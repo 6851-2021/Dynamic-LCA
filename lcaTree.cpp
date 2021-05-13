@@ -35,7 +35,7 @@ void TreeNode::assignApex() {
     for (TreeNode* child : children) {child->assignApex();}
 }
 
-// uncompressedParent remains unchanged
+// uncompressedParent and uncompressedLevel remains unchanged
 // "parent", "children", and "subtreeSize" now refer to the compressed tree
 void TreeNode::compressTree(){
     // Set parent pointer
@@ -120,15 +120,11 @@ void TreeNode::fillAncestorTable(){
     }
 }
 
-void TreeNode::assignLevels(bool compressed, int level) {
-    if (compressed) {
-        this->level = level;
-    } else {
-        this->uncompressedLevel = level;
-    }
+void TreeNode::assignLevels(int level) {
+    this->uncompressedLevel = level;
 
     for (TreeNode* child : children) {
-        child->assignLevels(compressed, level + 1);
+        child->assignLevels(level + 1);
     }
 }
 
@@ -137,17 +133,22 @@ void TreeNode::assignLevels(bool compressed, int level) {
 ///////////////////////
 
 
-static TreeNode* TreeNode::lca(TreeNode* nodeX, TreeNode* nodeY) {
-    //TODO:
-    return NULL;
+TreeNode* TreeNode::lca(TreeNode* nodeX, TreeNode* nodeY) {
+    TreeNode::caTuple cas = lcaCompressed(nodeX, nodeY);
+    TreeNode* b_x = (cas.ca_x->isApex) ?
+                    cas.ca_x->uncompressedParent : cas.ca_x;
+    TreeNode* b_y = (cas.ca_y->isApex) ?
+                    cas.ca_y->uncompressedParent : cas.ca_y;
+    TreeNode* result = ((b_x->uncompressedLevel < b_y->uncompressedLevel) ?
+                        b_x : b_y);
+
+    std::cout << "LCA of " << getId(nodeX) << " and " << getId(nodeY) << ": " << getId(result) << std::endl;
+    return result;
 }
 
-static TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
-    std::cout << "Beginning compressed" << std::endl;
+TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
     int i = floor(log(abs(nodeX->start - nodeY->start))/log(beta));
-    std::cout << "i: " << i << std::endl;
     TreeNode* v = nodeX->ancestors[i];
-    std::cout << "v: " << getId(v) << std::endl;
 
     TreeNode* w;
     if (v) {
@@ -155,8 +156,6 @@ static TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* node
     } else {
         w = nodeX;
     }
-
-    std::cout << "w: " << getId(w) << std::endl;
 
     TreeNode* b;
     TreeNode* b_x;
@@ -206,7 +205,7 @@ static TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* node
     toReturn.lca = a;
     toReturn.ca_x = a_x;
     toReturn.ca_y = a_y;
-    std::cout << "a: " << getId(a) << ", a_x: " << getId(a_x) << ", a_y: " << getId(a_y) << std::endl;
+    //std::cout << "a: " << getId(a) << ", a_x: " << getId(a_x) << ", a_y: " << getId(a_y) << std::endl;
     return(toReturn);
 }
 
