@@ -112,11 +112,23 @@ void TreeNode::fillAncestorTable(){
     int i = ancestors.size() - 1;
     TreeNode* currNode = this->parent;
     while (currNode) {
-        while ((c - 2) * intpow(this->subtreeSize, e) < intpow(beta, i)) {
+        while ((c - 2) * intpow(currNode->subtreeSize, e) < intpow(beta, i)) {
             ancestors[i] = currNode;
             i = i - 1;
         }
         currNode = currNode->parent;
+    }
+}
+
+void TreeNode::assignLevels(bool compressed, int level) {
+    if (compressed) {
+        this->level = level;
+    } else {
+        this->uncompressedLevel = level;
+    }
+
+    for (TreeNode* child : children) {
+        child->assignLevels(compressed, level + 1);
     }
 }
 
@@ -125,15 +137,17 @@ void TreeNode::fillAncestorTable(){
 ///////////////////////
 
 
-void TreeNode::lca(TreeNode nodeA, TreeNode nodeB) {
-    nodeA.print();
-    nodeB.print();
-    // TODO: Answer queries
+static TreeNode* TreeNode::lca(TreeNode* nodeX, TreeNode* nodeY) {
+    //TODO:
+    return NULL;
 }
 
-TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
+static TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
+    std::cout << "Beginning compressed" << std::endl;
     int i = floor(log(abs(nodeX->start - nodeY->start))/log(beta));
-    TreeNode* v = ancestors[i];
+    std::cout << "i: " << i << std::endl;
+    TreeNode* v = nodeX->ancestors[i];
+    std::cout << "v: " << getId(v) << std::endl;
 
     TreeNode* w;
     if (v) {
@@ -142,9 +156,10 @@ TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
         w = nodeX;
     }
 
+    std::cout << "w: " << getId(w) << std::endl;
+
     TreeNode* b;
     TreeNode* b_x;
-    TreeNode* b_y;
     if ((c - 2) * intpow(w->subtreeSize, e) > abs(nodeX->start - nodeY->start)) {
         b = w;
         if (v) {b = v;} else {b = nodeX;}
@@ -153,9 +168,50 @@ TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
         b_x = w;
     }
 
-    // if b is an ancestor of y then
-    // ...
+    TreeNode* a;
+    TreeNode* a_x;
+    if (b->isAncestor(nodeY)) {
+        a = b;
+        a_x = b_x;
+    } else {
+        a = b->parent;
+        a_x = b;
+    }
 
+    // Symetric computation to compute a_y
+    // TODO: Clean up this code
+    v = nodeY->ancestors[i];
+
+    if (v) {w = v->parent;} else {w = nodeX;}
+
+    TreeNode* b_y;
+    if ((c - 2) * intpow(w->subtreeSize, e) > abs(nodeX->start - nodeY->start)) {
+        b = w;
+        if (v) {b = v;} else {b = nodeY;}
+    } else {
+        b = w->parent;
+        b_y = w;
+    }
+
+    TreeNode* a_y;
+    if (b->isAncestor(nodeX)) {
+        a = b;
+        a_y = b_y;
+    } else {
+        a = b->parent;
+        a_y = b;
+    }
+
+    caTuple toReturn;
+    toReturn.lca = a;
+    toReturn.ca_x = a_x;
+    toReturn.ca_y = a_y;
+    std::cout << "a: " << getId(a) << ", a_x: " << getId(a_x) << ", a_y: " << getId(a_y) << std::endl;
+    return(toReturn);
+}
+
+bool TreeNode::isAncestor(TreeNode* node) {
+    return (start <= node->start) && (node->start <= end);
 }
 
 ///////////////////////////
@@ -200,7 +256,8 @@ void TreeNode::print(int level) {
               << "(subtree size = " << subtreeSize << ", "
               << "isApex = " << isApex << ", "
               << "parentId = " << getId(parent) << ", "
-              << "uncompparentId = " << getId(uncompressedParent) << ")"
+              << "uncompparentId = " << getId(uncompressedParent) << ", "
+              << "level = " << uncompressedLevel << ")"
               << std::endl;
     for (TreeNode* child : children) {
         child->print(level + 1);

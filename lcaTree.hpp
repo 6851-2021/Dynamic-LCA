@@ -10,9 +10,9 @@ class TreeNode {
             TreeNode* ca_y;
         };
 
-        const int beta = 2;
-        const int e = 2;
-        const int c = 4;
+        static const int beta = 2;
+        static const int e = 2;
+        static const int c = 4;
         //typedef int (TreeNode::*sigmaType)();
 
         std::string nodeId;
@@ -22,6 +22,8 @@ class TreeNode {
         int subtreeSize;
         bool isApex;
         TreeNode* closestApex;
+        int uncompressedLevel;
+        int level;
 
         // variables for the fat preorder numbering 
         int start;
@@ -52,9 +54,13 @@ class TreeNode {
         void fillAncestorTable();
         void printAncestors(int level = 0);
 
+        void assignLevels(bool compressed, int level = 0);
+        
         // Query
-        void lca(TreeNode nodeA, TreeNode nodeB);
-        caTuple lcaCompressed(TreeNode* nodeX, TreeNode* nodeY);
+        static TreeNode* lca(TreeNode* nodeA, TreeNode* nodeB);
+        static caTuple lcaCompressed(TreeNode* nodeX, TreeNode* nodeY);
+
+        bool isAncestor(TreeNode* node);
     private:
         void print(int level);
  };
