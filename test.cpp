@@ -58,11 +58,19 @@ void smallStaticLCA() {
 void testRandTree() {
     //std::vector<int> seq = {1,1,1,1,6,5};
     //std::vector<int> seq = {0,0,0,0,5,4};
+    int numNodes = 6;
     for (int i = 0; i < 5; ++i)
     {
-        TreeNode* root = generateRandTree(6);//treeFromSeq(seq);
-        root->print();
-        deleteTree(root);
+        treeAndNodes randTree = generateRandTree(numNodes);//treeFromSeq(seq);
+        randTree.tree->print();
+
+        int nodeX = rand() % numNodes;
+        int nodeY = rand() % numNodes;
+        std::cout << "Computing LCA of " << nodeX << ", " << nodeY << std::endl;
+        //TreeNode::lca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
+        TreeNode::naiveLca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
+        
+        deleteTree(randTree.tree);
         std::cout << "----------" <<std::endl;
     }
 }

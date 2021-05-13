@@ -1,5 +1,6 @@
 #include "lcaTree.hpp"
 #include <iostream>
+#include <deque>
 
 ///////////////////////////////////////////
 ////////    LCA for Static Trees    ///////
@@ -211,6 +212,36 @@ TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
 
 bool TreeNode::isAncestor(TreeNode* node) {
     return (start <= node->start) && (node->start <= end);
+}
+
+TreeNode* TreeNode::naiveLca(TreeNode* nodeX, TreeNode* nodeY) {
+    if (nodeX == nodeY) {
+        std::cout << "     Naive LCA of " << getId(nodeX) << " and " << getId(nodeY) << ": " << getId(nodeX) << std::endl;
+        return nodeX;
+    }
+    std::deque<TreeNode*> xPath;
+    std::deque<TreeNode*> yPath;
+    
+    TreeNode* currNode = nodeX;
+    while (currNode) {
+        xPath.emplace_front(currNode);
+        currNode = currNode->parent;
+    }
+
+    currNode = nodeY;
+    while (currNode) {
+        yPath.emplace_front(currNode);
+        currNode = currNode->parent;
+    }
+
+    int i = 0;
+    while (xPath[i] == yPath[i]) {
+        i++;
+    }
+
+    TreeNode* lca = xPath[i-1];
+    std::cout << "     Naive LCA of " << getId(nodeX) << " and " << getId(nodeY) << ": " << getId(lca) << std::endl;
+    return(lca);
 }
 
 ///////////////////////////

@@ -60,6 +60,7 @@ class TreeNode {
         // Query
         static TreeNode* lca(TreeNode* nodeA, TreeNode* nodeB);
         static caTuple lcaCompressed(TreeNode* nodeX, TreeNode* nodeY);
+        static TreeNode* naiveLca(TreeNode* nodeA, TreeNode* nodeB);
 
         bool isAncestor(TreeNode* node);
     private:

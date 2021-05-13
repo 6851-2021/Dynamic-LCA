@@ -1,8 +1,14 @@
 #include "lcaTree.hpp"
+#include "generateRandTrees.hpp"
 #include <iostream>
 
 using namespace std;
 // Pseudocode taken from https://en.wikipedia.org/wiki/Pr%C3%BCfer_sequence
+
+// typedef struct treeAndNodes {
+//     TreeNode* tree;
+//     std::vector<TreeNode*> nodes;
+// } treeAndNodes;
 
 void assignChildrenDFS(int currNode, vector<TreeNode*> nodes, vector<vector<int>> adjList, vector<bool> discovered) {
     discovered[currNode] = true;
@@ -14,7 +20,7 @@ void assignChildrenDFS(int currNode, vector<TreeNode*> nodes, vector<vector<int>
     }
 }
 
-TreeNode* treeFromAdj(vector<vector<int>> adjList) {
+treeAndNodes treeFromAdj(vector<vector<int>> adjList) {
     int treeSize = adjList.size();
 
     vector<TreeNode*> nodes(treeSize);
@@ -26,10 +32,14 @@ TreeNode* treeFromAdj(vector<vector<int>> adjList) {
     }
 
     assignChildrenDFS(0, nodes, adjList, discovered);
-    return (nodes[0]);
+
+    treeAndNodes toReturn;
+    toReturn.tree = nodes[0];
+    toReturn.nodes = nodes;
+    return toReturn;
 }
 
-TreeNode* treeFromSeq(vector<int> seq) {
+treeAndNodes treeFromSeq(vector<int> seq) {
     int treeSize = seq.size() + 2;
     vector<int> degree(treeSize);
     vector<vector<int>> adjList;
@@ -85,7 +95,7 @@ void deleteTree(TreeNode* node) {
 }
 
 
-TreeNode* generateRandTree(int numNodes) {
+treeAndNodes generateRandTree(int numNodes) {
     vector<int> seq;
     for (int i = 0; i < numNodes - 2; ++i)
     {
