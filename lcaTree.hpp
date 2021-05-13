@@ -1,3 +1,6 @@
+#ifndef LCATREE_H
+#define LCATREE_H
+
 #include <list>
 #include <string>
 #include <vector>
@@ -21,7 +24,6 @@ class TreeNode {
         TreeNode* uncompressedParent;
         int subtreeSize;
         bool isApex;
-        TreeNode* closestApex;
         int uncompressedLevel;
 
         // variables for the fat preorder numbering 
@@ -30,7 +32,7 @@ class TreeNode {
         int startBuffered;
         int endBuffered; //last integer in the buffered interval (inclusive)
         
-        std::vector<TreeNode*> ancestors;
+        std::vector<TreeNode*> ancestors; //ancestor table
 
         // Basic Tree Operations
         TreeNode(std::string id, int treeSize); //Because tree is static, we get to know treeSize in advance
@@ -63,3 +65,5 @@ class TreeNode {
     private:
         void print(int level);
  };
+
+#endif

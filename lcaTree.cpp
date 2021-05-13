@@ -222,10 +222,10 @@ TreeNode::TreeNode(std::string id, int treeSize) {
     parent = NULL;
     uncompressedParent = NULL;
     subtreeSize = 0;
-    start = 0;
-    end = 0;
     isApex = false;
-    closestApex = NULL;
+    uncompressedLevel = -1;
+
+    start = 0, startBuffered = 0, end = 0, endBuffered = 0;
 
     int ancestorSize = 1 + floor(log(c * intpow(treeSize, e))/log(beta));
     ancestors.resize(ancestorSize);

@@ -2,12 +2,13 @@
 #include <string>
 #include <iostream>
 #include "lcaTree.hpp"
+#include "generateRandTrees.hpp"
 
 /////////////////////
 //// Example Run ////
 /////////////////////
 
-int main(){
+void smallStaticLCA() {
     int n = 8;
     TreeNode root = TreeNode("0", n);
     TreeNode node1L = TreeNode("1-L", n);
@@ -49,9 +50,24 @@ int main(){
 
     TreeNode::lca(&node1L, &node1R); //0
     TreeNode::lca(&node4R, &node4L); //3
-    TreeNode::lca(&node5, &node4L); //3
+    TreeNode::lca(&node5, &node4L); //4L
     TreeNode::lca(&node2, &node4L); //2
     TreeNode::lca(&node1L, &node4L); //0
+}
 
+void testRandTree() {
+    //std::vector<int> seq = {1,1,1,1,6,5};
+    //std::vector<int> seq = {0,0,0,0,5,4};
+    for (int i = 0; i < 5; ++i)
+    {
+        TreeNode* root = generateRandTree(6);//treeFromSeq(seq);
+        root->print();
+        deleteTree(root);
+        std::cout << "----------" <<std::endl;
+    }
+}
+int main(){
+    //smallStaticLCA();
+    testRandTree();
     return 0;
 }
