@@ -5,8 +5,8 @@ DEPS = lcaTree.hpp
 %.o: %.cpp $(DEPS)                                                              
 		$(CC) -o $@ $< $(CFLAGS)
 
-lca: lcaTree.o
-	$(CC) -o lca lcaTree.o
+lca: test.o lcaTree.o
+	$(CC) -o lca test.o lcaTree.o
 
 clean:                                                                          
 		rm -f *.o core* *~ er
