@@ -1,5 +1,6 @@
 # Object files and executable
 *.o
+*.dSYM
 lca
 
 .DS_Store
