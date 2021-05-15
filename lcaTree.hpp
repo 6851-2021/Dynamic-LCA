@@ -13,24 +13,33 @@ class TreeNode {
             TreeNode* ca_y;
         };
 
-        static const int beta = 2;
-        static const int e = 2;
-        static const int c = 4;
+        static constexpr float beta = 10.0/7.0;
+        static const int e = 4;
+        static const int c = 5;
+        static constexpr float alpha = 6.0/5.0;
+
+        //Static: beta = 2, e = 2, c = 4
         //typedef int (TreeNode::*sigmaType)();
 
         std::string nodeId;
         std::list<TreeNode*> children;
         TreeNode* parent;
-        TreeNode* uncompressedParent;
-        int subtreeSize;
+        int subtreeSize; // subtreeSize used in current fat preordering
+        int dynamicSubtreeSize; // dynamically updated subtreeSize
+
         bool isApex;
+        bool isPreprocessed;
+
+        std::list<TreeNode*> uncompressedChildren;
+        TreeNode* uncompressedParent;
         int uncompressedLevel;
+        
 
         // variables for the fat preorder numbering 
-        int start;
-        int end;
-        int startBuffered;
-        int endBuffered; //last integer in the buffered interval (inclusive)
+        long long start;
+        long long end;
+        long long startBuffered;
+        long long endBuffered; //last integer in the buffered interval (inclusive)
         
         std::vector<TreeNode*> ancestors; //ancestor table
 
@@ -41,9 +50,12 @@ class TreeNode {
         void addChild(TreeNode* child);
 
         // Methods for Static Preprocessing
-        int assignSubtreeSizes(); //Returns size of tree
+        void preprocess();
+        void setPreprocessedFlag();
+        int assignSubtreeSizes(bool useCompressed); //Returns size of tree
         void assignApex();
         void compressTree();
+        bool inPath(TreeNode* apex);
         
         //TODO: add back sigmaType sigma= &TreeNode::getSubtreeSize
         void assignIntervals();
@@ -57,12 +69,15 @@ class TreeNode {
 
         void assignLevels(int level = 0);
         
+        void recompress();
+        void add_leaf(TreeNode* leaf);
+
         // Query
         static TreeNode* lca(TreeNode* nodeA, TreeNode* nodeB);
         static caTuple lcaCompressed(TreeNode* nodeX, TreeNode* nodeY);
         static TreeNode* naiveLca(TreeNode* nodeA, TreeNode* nodeB);
 
-        bool isAncestor(TreeNode* node);
+        bool isAncestorOf(TreeNode* node);
     private:
         void print(int level);
  };

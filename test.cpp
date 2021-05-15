@@ -28,25 +28,14 @@ void smallStaticLCA() {
 
     root.print();
 
-    std::cout << "\n--------\n\n";
-    root.assignSubtreeSizes();
-    root.assignApex();
-    root.assignLevels();
+    root.preprocess();
 
-    root.print();
     std::cout << "\n--------\n\n";
-
-    root.compressTree();
-    root.print();
-    std::cout << "\n--------\n\n";
-
-    root.assignIntervals();
-    root.printIntervals(0);
-    std::cout << "\n--------\n\n";
-
-    root.fillAllAncestors();
-    root.printAncestors(0);
-    std::cout << "\n--------\n\n";
+    
+    //root.printIntervals(0);
+    //std::cout << "\n--------\n\n";
+    //root.printAncestors(0);
+    //std::cout << "\n--------\n\n";
 
     TreeNode::lca(&node1L, &node1R); //0
     TreeNode::lca(&node4R, &node4L); //3
@@ -61,9 +50,11 @@ void testRandTree() {
     // TODO: check 1000, 50, 1000
 
     int numNodes = 1000;
-    for (int i = 0; i < 500; ++i)
+    for (int i = 0; i < 50; ++i)
     {
+        std::cout << "Checking tree " << i << std::endl;
         treeAndNodes randTree = generateRandTree(numNodes);//treeFromSeq(seq);
+        std::cout << "    Generated tree " << i << std::endl;
         //randTree.tree->print();
         randTree.tree->preprocess();
         //randTree.tree->printIntervals(0);
@@ -79,7 +70,7 @@ void testRandTree() {
             std::cout << i << "." << j << ") LCA of " << nodeX << ", " << nodeY << ": "<< lca1->nodeId << " and " << lca2->nodeId << std::endl;
     
             assert(lca1 != NULL);
-            //assert(lca1 == lca2);
+            assert(lca1 == lca2);
         }
 
     

@@ -31,6 +31,7 @@ treeAndNodes treeFromAdj(vector<vector<int>> adjList, vector<int> seq) {
         discovered[i] = false;
     }
 
+    std::cout << "Generating random tree DFS" << std::endl;
     assignChildrenDFS(0, nodes, adjList, discovered);
 
     treeAndNodes toReturn;
@@ -102,6 +103,6 @@ treeAndNodes generateRandTree(int numNodes) {
     {
         seq.push_back(rand() % numNodes);
     }
-
+    
     return treeFromSeq(seq);
 }
