@@ -17,6 +17,24 @@ int intpow(int x, int n) {
     return(result);
 }
 
+void TreeNode::preprocess() {
+    this->assignSubtreeSizes();
+    this->assignApex();
+    this->assignLevels();
+
+    this->compressTree();
+    this->assignIntervals();
+    this->fillAllAncestors();
+    this->setPreprocessedFlag();
+}
+
+void TreeNode::setPreprocessedFlag() {
+    isPreprocessed = true;
+    for (TreeNode* child : children) {
+        child->setPreprocessedFlag();
+    }
+}
+
 int TreeNode::assignSubtreeSizes() {
     subtreeSize = 1;
     for (TreeNode* child : children) {
@@ -110,16 +128,55 @@ std::string strAncestorTable(std::vector<TreeNode*> ancestors) {
 }
 
 void TreeNode::fillAncestorTable(){
-    int i = ancestors.size() - 1;
-    TreeNode* currNode = this->parent;
+    //std::cout << "FILLING ANCESTOR TABLE " << std::endl;
+    size_t i = 0;
+    //std::cout << "table size: " << ancestors.size() << std::endl;
+    TreeNode* currNode = this;
+    TreeNode* nextNode = currNode->parent;
+
+    bool currIsLess = (c - 2) * intpow(currNode->subtreeSize, e) < intpow(beta, i);
+    while (!currIsLess) {
+        i += 1;
+        currIsLess = (c - 2) * intpow(currNode->subtreeSize, e) < intpow(beta, i);
+    }
+
+    bool nextIsMore;
     while (currNode) {
-        while ((c - 2) * intpow(currNode->subtreeSize, e) < intpow(beta, i)) {
+        //std::cout << "TABLE: "<< strAncestorTable(ancestors) << std::endl;
+        currIsLess = (c - 2) * intpow(currNode->subtreeSize, e) < intpow(beta, i);
+        //std::cout << "before nextIsMore" << std::endl;
+        nextIsMore = !nextNode || ((c - 2) * intpow(nextNode->subtreeSize, e) >= intpow(beta, i));
+        //std::cout << "currIsLess: " << currIsLess << ", nextIsMore: " << nextIsMore << std::endl;
+        while (currIsLess && nextIsMore && i < ancestors.size()) {
+            //std::cout << "inside loop" << std::endl;
             ancestors[i] = currNode;
-            i = i - 1;
+            i += 1;
+            //std::cout << "    i: "<< i << std::endl;
+            //std::cout << "    TABLE: "<< strAncestorTable(ancestors) << std::endl;
+
+            currIsLess = (c - 2) * intpow(currNode->subtreeSize, e) < intpow(beta, i);
+            nextIsMore = !nextNode || ((c - 2) * intpow(nextNode->subtreeSize, e) >= intpow(beta, i));
         }
-        currNode = currNode->parent;
+
+        //std::cout << "after loop" << std::endl;
+
+        currNode = nextNode;
+        nextNode = nextNode ? nextNode->parent : NULL;
     }
 }
+
+
+// void TreeNode::fillAncestorTable(){
+//     int i = ancestors.size() - 1;
+//     TreeNode* currNode = this->parent;
+//     while (currNode) {
+//         while ((c - 2) * intpow(currNode->subtreeSize, e) < intpow(beta, i)) {
+//             ancestors[i] = currNode;
+//             i = i - 1;
+//         }
+//         currNode = currNode->parent;
+//     }
+// }
 
 void TreeNode::assignLevels(int level) {
     this->uncompressedLevel = level;
@@ -135,78 +192,121 @@ void TreeNode::assignLevels(int level) {
 
 
 TreeNode* TreeNode::lca(TreeNode* nodeX, TreeNode* nodeY) {
+    if (!nodeX->isPreprocessed or !nodeY->isPreprocessed) {
+        std::cout << "Error: Tree must be preprocessed before calling LCA." << std::endl;
+        exit(-1);
+    } else if (nodeX == nodeY) {
+        return nodeX;
+    }
+
+    //std::cout << "before compressed" << std::endl;
     TreeNode::caTuple cas = lcaCompressed(nodeX, nodeY);
-    TreeNode* b_x = (cas.ca_x->isApex) ?
-                    cas.ca_x->uncompressedParent : cas.ca_x;
-    TreeNode* b_y = (cas.ca_y->isApex) ?
-                    cas.ca_y->uncompressedParent : cas.ca_y;
+    //std::cout << "after compressed: " << getId(cas.lca) << ", " << getId(cas.ca_x) << ", " << getId(cas.ca_y) << std::endl;
+    TreeNode* b_x = (cas.ca_x->inPath(cas.lca)) ?
+                     cas.ca_x : cas.ca_x->uncompressedParent;
+    TreeNode* b_y = (cas.ca_y->inPath(cas.lca)) ?
+                     cas.ca_y : cas.ca_y->uncompressedParent;
     TreeNode* result = ((b_x->uncompressedLevel < b_y->uncompressedLevel) ?
                         b_x : b_y);
 
-    std::cout << "LCA of " << getId(nodeX) << " and " << getId(nodeY) << ": " << getId(result) << std::endl;
     return result;
 }
 
-TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
-    int i = floor(log(abs(nodeX->start - nodeY->start))/log(beta));
-    TreeNode* v = nodeX->ancestors[i];
+bool TreeNode::inPath(TreeNode* apex) {
+    if (this == apex) {
+        return true;
+    } else {
+        return (!isApex && (parent == apex)); // "parent" refers to compressed parent
+    }
+}
 
+// Note: nodeX cannot be equal to nodeY
+TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
+    assert(nodeX != nodeY);
+
+    if (!nodeX->isPreprocessed or !nodeY->isPreprocessed) {
+        std::cout << "Error: Tree must be preprocessed before calling LCA." << std::endl;
+        exit(-1);
+    }
+
+    int i = floor(log(abs(nodeX->start - nodeY->start))/log(beta));
+    //std::cout  << "    i: " << i << std::endl;
+    TreeNode* v = nodeX->ancestors[i];
+    //std::cout  << "    v: " << getId(v) << std::endl;
     TreeNode* w;
     if (v) {
         w = v->parent;
     } else {
         w = nodeX;
     }
+    //std::cout  << "    w: " << getId(w) << std::endl;
 
     TreeNode* b;
     TreeNode* b_x;
     if ((c - 2) * intpow(w->subtreeSize, e) > abs(nodeX->start - nodeY->start)) {
         b = w;
-        if (v) {b = v;} else {b = nodeX;}
+        if (v) {b_x = v;} else {b_x = nodeX;}
     } else {
         b = w->parent;
         b_x = w;
     }
+    //std::cout  << "    b: " << getId(b) << std::endl;
+    //std::cout  << "    b_x: " << getId(b_x) << std::endl;
 
     TreeNode* a;
     TreeNode* a_x;
     if (b->isAncestor(nodeY)) {
+        //std::cout << "    b is an ancestor of y" << std::endl;
         a = b;
         a_x = b_x;
     } else {
+        //std::cout << "    b is NOT an ancestor of y" << std::endl;
         a = b->parent;
         a_x = b;
     }
 
+    //std::cout  << "    a: " << getId(a) << std::endl;
+    //std::cout  << "    a_x: " << getId(a_x) << std::endl;
+
     // Symetric computation to compute a_y
     // TODO: Clean up this code
+    //std::cout  << "    ---------SYMMETRIC WITH Y----- " << std::endl;
     v = nodeY->ancestors[i];
+    //std::cout  << "    v: " << getId(v) << std::endl;
 
-    if (v) {w = v->parent;} else {w = nodeX;}
+    if (v) {w = v->parent;} else {w = nodeY;}
+    //std::cout  << "    w: " << getId(w) << std::endl;
 
     TreeNode* b_y;
     if ((c - 2) * intpow(w->subtreeSize, e) > abs(nodeX->start - nodeY->start)) {
         b = w;
-        if (v) {b = v;} else {b = nodeY;}
+        if (v) {b_y = v;} else {b_y = nodeY;}
     } else {
         b = w->parent;
         b_y = w;
     }
+    //std::cout  << "    b: " << getId(b) << std::endl;
+    //std::cout  << "    b_y: " << getId(b_x) << std::endl;
+
 
     TreeNode* a_y;
     if (b->isAncestor(nodeX)) {
+        //std::cout << "    b is an ancestor of x" << std::endl;
         a = b;
         a_y = b_y;
     } else {
+        //std::cout << "    b is NOT an ancestor of x" << std::endl;
         a = b->parent;
         a_y = b;
     }
+    //std::cout  << "    a: " << getId(a) << std::endl;
+    //std::cout  << "    a_x: " << getId(a_x) << std::endl;
+
 
     caTuple toReturn;
     toReturn.lca = a;
     toReturn.ca_x = a_x;
     toReturn.ca_y = a_y;
-    //std::cout << "a: " << getId(a) << ", a_x: " << getId(a_x) << ", a_y: " << getId(a_y) << std::endl;
     return(toReturn);
 }
 
@@ -216,7 +316,6 @@ bool TreeNode::isAncestor(TreeNode* node) {
 
 TreeNode* TreeNode::naiveLca(TreeNode* nodeX, TreeNode* nodeY) {
     if (nodeX == nodeY) {
-        std::cout << "     Naive LCA of " << getId(nodeX) << " and " << getId(nodeY) << ": " << getId(nodeX) << std::endl;
         return nodeX;
     }
     std::deque<TreeNode*> xPath;
@@ -224,23 +323,22 @@ TreeNode* TreeNode::naiveLca(TreeNode* nodeX, TreeNode* nodeY) {
     
     TreeNode* currNode = nodeX;
     while (currNode) {
-        xPath.emplace_front(currNode);
-        currNode = currNode->parent;
+        xPath.push_front(currNode);
+        currNode = currNode->uncompressedParent;
     }
 
     currNode = nodeY;
     while (currNode) {
-        yPath.emplace_front(currNode);
-        currNode = currNode->parent;
+        yPath.push_front(currNode);
+        currNode = currNode->uncompressedParent;
     }
 
     int i = 0;
-    while (xPath[i] == yPath[i]) {
+    while (xPath[i] == yPath[i] && i < xPath.size() && i < yPath.size()) {
         i++;
     }
 
     TreeNode* lca = xPath[i-1];
-    std::cout << "     Naive LCA of " << getId(nodeX) << " and " << getId(nodeY) << ": " << getId(lca) << std::endl;
     return(lca);
 }
 
@@ -255,6 +353,7 @@ TreeNode::TreeNode(std::string id, int treeSize) {
     subtreeSize = 0;
     isApex = false;
     uncompressedLevel = -1;
+    isPreprocessed = false;
 
     start = 0, startBuffered = 0, end = 0, endBuffered = 0;
 
@@ -303,7 +402,8 @@ void TreeNode::printIntervals(int level) {
               << "(startB = " << startBuffered << ", "
               << "start = " << start << ", "
               << "end = " << end << ", "
-              << "endB = " << endBuffered << ")"
+              << "endB = " << endBuffered << ", "
+              << "len = "  << (c-2) * intpow(subtreeSize, 2) << ")"
               << std::endl;
     for (TreeNode* child : children) {
         child->printIntervals(level + 1);

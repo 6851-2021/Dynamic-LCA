@@ -58,20 +58,32 @@ void smallStaticLCA() {
 void testRandTree() {
     //std::vector<int> seq = {1,1,1,1,6,5};
     //std::vector<int> seq = {0,0,0,0,5,4};
-    int numNodes = 6;
-    for (int i = 0; i < 5; ++i)
+    // TODO: check 1000, 50, 1000
+
+    int numNodes = 1000;
+    for (int i = 0; i < 500; ++i)
     {
         treeAndNodes randTree = generateRandTree(numNodes);//treeFromSeq(seq);
-        randTree.tree->print();
+        //randTree.tree->print();
+        randTree.tree->preprocess();
+        //randTree.tree->printIntervals(0);
+        //randTree.tree->printAncestors(0);
 
-        int nodeX = rand() % numNodes;
-        int nodeY = rand() % numNodes;
-        std::cout << "Computing LCA of " << nodeX << ", " << nodeY << std::endl;
-        //TreeNode::lca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
-        TreeNode::naiveLca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
-        
+        for (int j = 0; j < 1000; ++j)
+        {
+            int nodeX = rand() % numNodes;
+            int nodeY = rand() % numNodes;
+            //std::cout << "Computing LCA of " << nodeX << ", " << nodeY << std::endl;
+            TreeNode* lca1 = TreeNode::lca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
+            TreeNode* lca2 = TreeNode::naiveLca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
+            std::cout << i << "." << j << ") LCA of " << nodeX << ", " << nodeY << ": "<< lca1->nodeId << " and " << lca2->nodeId << std::endl;
+    
+            assert(lca1 != NULL);
+            //assert(lca1 == lca2);
+        }
+
+    
         deleteTree(randTree.tree);
-        std::cout << "----------" <<std::endl;
     }
 }
 int main(){

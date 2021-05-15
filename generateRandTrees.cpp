@@ -20,7 +20,7 @@ void assignChildrenDFS(int currNode, vector<TreeNode*> nodes, vector<vector<int>
     }
 }
 
-treeAndNodes treeFromAdj(vector<vector<int>> adjList) {
+treeAndNodes treeFromAdj(vector<vector<int>> adjList, vector<int> seq) {
     int treeSize = adjList.size();
 
     vector<TreeNode*> nodes(treeSize);
@@ -36,6 +36,7 @@ treeAndNodes treeFromAdj(vector<vector<int>> adjList) {
     treeAndNodes toReturn;
     toReturn.tree = nodes[0];
     toReturn.nodes = nodes;
+    toReturn.seq = seq;
     return toReturn;
 }
 
@@ -84,7 +85,7 @@ treeAndNodes treeFromSeq(vector<int> seq) {
     adjList[u].push_back(v);
     adjList[v].push_back(u);
 
-    return (treeFromAdj(adjList));
+    return (treeFromAdj(adjList, seq));
 }
 
 void deleteTree(TreeNode* node) {

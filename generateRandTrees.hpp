@@ -4,6 +4,7 @@
 typedef struct treeAndNodes {
     TreeNode* tree;
     std::vector<TreeNode*> nodes;
+    std::vector<int> seq;
 } treeAndNodes; //TODO: Figure out correct syntax (cf. caTuple)
 
 treeAndNodes generateRandTree(int numNodes);
