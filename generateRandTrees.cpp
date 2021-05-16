@@ -5,10 +5,46 @@
 using namespace std;
 // Pseudocode taken from https://en.wikipedia.org/wiki/Pr%C3%BCfer_sequence
 
-// typedef struct treeAndNodes {
-//     TreeNode* tree;
-//     std::vector<TreeNode*> nodes;
-// } treeAndNodes;
+vector<vector<int>> randInsertionSeq(int numNodes) {
+    treeAndNodes randTree = generateRandTree(numNodes);
+    randTree.tree->print();
+    vector<vector<int>> insertions = randInsertionsFromTree(randTree.tree);
+    for(TreeNode* node : randTree.nodes){
+        delete node;
+    }
+    return insertions;
+}
+
+// Destructively transforms a tree into a sequence of leaves to add
+vector<vector<int>> randInsertionsFromTree(TreeNode* root) {
+    vector<int> leafIds;
+    vector<int> parentIds;
+
+    while(root->uncompressedChildren.size() > 0) {
+        TreeNode* leaf = getRandLeaf(root);
+        leafIds.push_back(stoi(leaf->nodeId));
+        if (leaf->uncompressedParent){
+            parentIds.push_back(stoi(leaf->uncompressedParent->nodeId));
+        }
+        leaf->deleteNode();
+    }
+
+    // The root has no parent - just assume it has been initialized already
+
+    return {leafIds, parentIds};
+}
+
+TreeNode* getRandLeaf(TreeNode* root) {
+    TreeNode* currNode = root;
+    std::list<TreeNode*> children = currNode->uncompressedChildren;
+    while (children.size() > 0) {
+        size_t childNum = rand() % children.size();
+        std::list<TreeNode*>::iterator it = std::next(children.begin(), childNum);
+        currNode = *it;
+        children = currNode->uncompressedChildren;
+    }
+    return currNode;
+}
 
 void assignChildrenDFS(int currNode, vector<TreeNode*> nodes, vector<vector<int>> adjList, vector<bool> discovered) {
     discovered[currNode] = true;
@@ -27,7 +63,7 @@ treeAndNodes treeFromAdj(vector<vector<int>> adjList, vector<int> seq) {
     vector<bool> discovered(treeSize);
     for (int i = 0; i < treeSize; ++i)
     {
-        nodes[i] = new TreeNode(to_string(i), treeSize);
+        nodes[i] = new TreeNode(to_string(i));
         discovered[i] = false;
     }
 

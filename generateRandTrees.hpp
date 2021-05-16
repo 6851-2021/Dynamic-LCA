@@ -9,5 +9,8 @@ typedef struct treeAndNodes {
 
 treeAndNodes generateRandTree(int numNodes);
 treeAndNodes treeFromSeq(std::vector<int> seq);
+TreeNode* getRandLeaf(TreeNode* root);
+std::vector<std::vector<int>> randInsertionsFromTree(TreeNode* root);
+std::vector<std::vector<int>> randInsertionSeq(int numNodes);
 void deleteTree(TreeNode* node);
 //void assignChildrenDFS(int currNode, vector<TreeNode*> nodes, vector<vector<int>> adjList, vector<bool> discovered);

@@ -24,6 +24,7 @@ class TreeNode {
         std::string nodeId;
         std::list<TreeNode*> children;
         TreeNode* parent;
+        TreeNode* root; // Used to determine number of nodes in the tree (to determine size of ancestor tables)
         int subtreeSize; // subtreeSize used in current fat preordering
         int dynamicSubtreeSize; // dynamically updated subtreeSize
 
@@ -32,6 +33,7 @@ class TreeNode {
 
         std::list<TreeNode*> uncompressedChildren;
         TreeNode* uncompressedParent;
+        int uncompressedSubtreeSize; //Not guaranteed to be up to date...
         int uncompressedLevel;
         
 
@@ -40,21 +42,24 @@ class TreeNode {
         long long end;
         long long startBuffered;
         long long endBuffered; //last integer in the buffered interval (inclusive)
-        
+        long long largestChildEndBuffer;
+
         std::vector<TreeNode*> ancestors; //ancestor table
 
         // Basic Tree Operations
-        TreeNode(std::string id, int treeSize); //Because tree is static, we get to know treeSize in advance
+        TreeNode(std::string id); //Because tree is static, we get to know treeSize in advance
         void print();
         void printIntervals(int level);
         void addChild(TreeNode* child);
+        void deleteNode();
 
         // Methods for Static Preprocessing
         void preprocess();
         void setPreprocessedFlag();
         int assignSubtreeSizes(bool useCompressed); //Returns size of tree
         void assignApex();
-        void compressTree();
+        void assignRoot(TreeNode* node);
+        void compressTree(bool isRoot = false);
         bool inPath(TreeNode* apex);
         
         //TODO: add back sigmaType sigma= &TreeNode::getSubtreeSize

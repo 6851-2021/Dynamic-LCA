@@ -2,9 +2,26 @@
 #include <iostream>
 #include <deque>
 
+using std::cout;
+using std::endl;
 ///////////////////////////////////////////
 ////////    LCA for Static Trees    ///////
 ///////////////////////////////////////////
+
+std::string getId(TreeNode* node) {
+    if (node) {return (node->nodeId);}
+    else {return "NULL";}
+}
+
+std::string strAncestorTable(std::vector<TreeNode*> ancestors) {
+    std::string result = "[";
+    for (size_t i = 0; i < ancestors.size(); ++i)
+    {
+        result = result + getId(ancestors[i]) + ", ";
+    }
+    result = result + "]";
+    return(result);
+}
 
 ///////////////////
 // Preprocessing //
@@ -21,8 +38,9 @@ void TreeNode::preprocess() {
     this->assignSubtreeSizes(false);
     this->assignApex();
     this->assignLevels();
+    this->assignRoot(this);
 
-    this->compressTree();
+    this->compressTree(true);
     this->assignIntervals();
     this->fillAllAncestors();
     this->setPreprocessedFlag();
@@ -31,13 +49,26 @@ void TreeNode::preprocess() {
 void TreeNode::recompress() {
     this->assignSubtreeSizes(false); //with compressed = false
     this->assignApex();
+    isApex = true; // Treat the current node as the "root", even though it could have a parent
     this->assignLevels();
 
-    this->compressTree(); //TODO: update with compressed = true for subtreeSizes
+    cout << "After assigning OriginalSubtreeSizes/Apex" << endl;
+    print();
+
+    this->compressTree(true); //TODO: update with compressed = true for subtreeSizes
     if (this->parent) {
         //get largest endBuffered in this->parent->children
+        cout << "    This parent: " << parent->nodeId << endl;
+        cout << "    Parent largest end buffer: " << parent->largestChildEndBuffer<< endl;
+        
         // assign this buffered interval <- [Q(u), Q(u) + cs(v)^e]
+        startBuffered = parent->largestChildEndBuffer; //TODO: Check off by 1 error?
+        endBuffered = parent->largestChildEndBuffer + c * pow(subtreeSize, e);
+        parent->largestChildEndBuffer = endBuffered;
+        cout << "    Assigning interval to node " << nodeId <<": [" << startBuffered << ", " << endBuffered << "]" << endl;
+
         // assign fat preordering to children
+        contAssignIntervals();
     } else {
         this->assignIntervals();
     }
@@ -66,30 +97,44 @@ int TreeNode::assignSubtreeSizes(bool useCompressed) {
 // A node is apex if it is not a a heavy child
 void TreeNode::assignApex() {
     if (parent) {
-        isApex = (subtreeSize * 2 <= parent->subtreeSize);
+        isApex = (subtreeSize * 2 <= uncompressedParent->subtreeSize);
     } else {
         isApex = true;
     }
 
-    for (TreeNode* child : children) {child->assignApex();}
+    for (TreeNode* child : uncompressedChildren) {child->assignApex();}
+}
+
+void TreeNode::assignRoot(TreeNode* node) {
+    root = node;
+    for (TreeNode* child : children) {child->assignRoot(node);}
 }
 
 // uncompressedParent and uncompressedChildren and uncompressedLevel remain unchanged
 // "parent", "children", and "subtreeSize" now refer to the compressed tree
-void TreeNode::compressTree(){
+void TreeNode::compressTree(bool isRoot){
+    children.clear();
     // Set parent pointer
-    if (parent) {
-        if (parent->isApex) {
+
+    // "new" parent?
+    if (uncompressedParent) {
+        if (uncompressedParent->isApex) {
+            parent = uncompressedParent;
             //closestApex is already parent - do nothing (closestApex = parent;)
         } else {
             // parent has already been updated, so the parent will be the child of the correct apex node
-            (parent->parent)->children.push_back(this);
-            parent = parent->parent;
+            parent = uncompressedParent->parent;
         }
-    } // else do nothing (root in original = root in compressed)
+    }
 
+    if (!isRoot && parent) {
+        parent->children.push_back(this);
+    }
+
+     // else do nothing (root in original = root in compressed)
+    // cout << "    Compressing node " << nodeId << ": parent now " << getId(parent) << endl;
     // Update children pointers
-    for (TreeNode* child : children) {child->compressTree();} //Recurse first
+    for (TreeNode* child : uncompressedChildren) {child->compressTree();} //Recurse first
     if (isApex) {
         // do nothing (it keeps all its children)
     } else {
@@ -114,6 +159,8 @@ void TreeNode::contAssignIntervals() {
     //if (nodeId == "0"){std::cout << "BUFFER: " << buffer << std::endl;}
     start = startBuffered + buffer;
     end = endBuffered - buffer;
+
+    largestChildEndBuffer = start; //Edge case when there are no children (children would be assigned starting at `start`)
     
     // Assign buffered intervals to children & recurse
     long long currChildStart = start + 1;
@@ -125,24 +172,12 @@ void TreeNode::contAssignIntervals() {
         currChildStart = currChildStart + intervalSize + 1;
 
         child->contAssignIntervals();
+
+        // Mantain "largest" augmented value
+        largestChildEndBuffer = currChildStart + intervalSize;
     }
 }
 
-
-std::string getId(TreeNode* node) {
-    if (node) {return (node->nodeId);}
-    else {return "NULL";}
-}
-
-std::string strAncestorTable(std::vector<TreeNode*> ancestors) {
-    std::string result = "[";
-    for (size_t i = 0; i < ancestors.size(); ++i)
-    {
-        result = result + getId(ancestors[i]) + ", ";
-    }
-    result = result + "]";
-    return(result);
-}
 
 void TreeNode::fillAllAncestors(){
     // if (nodeId == "0") {
@@ -153,13 +188,21 @@ void TreeNode::fillAllAncestors(){
     // }
 
     this->fillAncestorTable();
+    // std::cout << "    " << nodeId << " TABLE: "<< strAncestorTable(ancestors) << std::endl;
     for (TreeNode* child : children) {
         child->fillAllAncestors();
     }
 }
 
 void TreeNode::fillAncestorTable(){
-    //std::cout << "FILLING ANCESTOR TABLE " << std::endl;
+    int currTreeSize = root->subtreeSize;
+    int ancestorSize = 1 + floor(log(c * pow(currTreeSize, e))/log(beta)); //add +1 as buffer?
+    ancestors.resize(ancestorSize, NULL);
+    for (int i = 0; i < ancestorSize; ++i)
+    {
+        ancestors[i] = NULL;
+    }
+
     size_t i = 0;
     //std::cout << "table size: " << ancestors.size() << std::endl;
     TreeNode* currNode = this;
@@ -199,7 +242,7 @@ void TreeNode::fillAncestorTable(){
 void TreeNode::assignLevels(int level) {
     this->uncompressedLevel = level;
 
-    for (TreeNode* child : children) {
+    for (TreeNode* child : uncompressedChildren) {
         child->assignLevels(level + 1);
     }
 }
@@ -208,11 +251,16 @@ void TreeNode::assignLevels(int level) {
 // Dynamic Operations //
 ////////////////////////
 void TreeNode::add_leaf(TreeNode* leaf) {
+    cout << "---" << endl;
+    cout << "Inserting " << leaf->nodeId << endl;
     // Add leaf to original tree
+    // cout << "    Adding uncompressed children" << endl;
     uncompressedChildren.push_back(leaf);
     leaf->uncompressedParent = this;
+    leaf->root = root;
 
     // Set leaf path
+    // cout << "    Setting path/apex" << endl;
     leaf->isApex = true;
     if (isApex) {
         children.push_back(leaf);
@@ -223,29 +271,44 @@ void TreeNode::add_leaf(TreeNode* leaf) {
     }
 
     // Update subtree sizes
+    // cout << "    Updating dynamic subtree sizes" << endl;
     TreeNode* currNode = leaf;
 
-    leaf->subtreeSize = 0; //By convention, dynamicSubtreeSize >= alpha * subtreeSize holds for `leaf`
-    leaf->dynamicSubtreeSize = 1;
+    leaf->subtreeSize = 1; //TODO check - By convention, dynamicSubtreeSize >= alpha * subtreeSize holds for `leaf`: so start it at 0
+    leaf->dynamicSubtreeSize = 0; //start at 0 so that we increment to 1 on the first loop
     
     while (currNode) {
-        dynamicSubtreeSize += 1;
+        currNode->dynamicSubtreeSize += 1;
         currNode = currNode->parent;
     }
 
     // Record last node where
     // dynamicSubtreeSize >= alpha * subtreeSize (ie. last "broken" node)
-    currNode = leaf; //By convention, leaf is broken
-    currNode->parent;   
+    // cout << "    Finding last broken node" << endl;
+    // cout << "    Current Compressed Tree" << endl;
+    // this->root->printIntervals(0);
+    // cout << "    Current Uncompressed Tree" << endl;
+    // this->root->print();
+
+    currNode = leaf; //By convention, leaf is "broken"
     bool nextIsBroken = currNode->parent && currNode->parent->dynamicSubtreeSize >= alpha * currNode->parent->subtreeSize;
 
     while(nextIsBroken) {
         currNode = currNode->parent;
+        nextIsBroken = currNode->parent && currNode->parent->dynamicSubtreeSize >= alpha * currNode->parent->subtreeSize;
     }
 
     // Recompress last "broken" node and update ancestor tables
-    currNode->recompress();//TODO write this
+    cout << "    Last broken node: " << getId(currNode) << endl;
+    // cout << "Recompressing" << endl;
+    currNode->recompress();
+    // cout << "    Current Tree" << endl;
+    // this->root->printIntervals(0);
+    // cout << "    Filling ancestor tables" << endl;
     currNode->fillAllAncestors();
+    // cout << "    Setting `preprocessed` for subtree starting at " << currNode->nodeId << endl;
+    currNode->setPreprocessedFlag();
+    currNode->printIntervals(0);
 }
 
 
@@ -264,11 +327,26 @@ TreeNode* TreeNode::lca(TreeNode* nodeX, TreeNode* nodeY) {
 
     //std::cout << "before compressed" << std::endl;
     TreeNode::caTuple cas = lcaCompressed(nodeX, nodeY);
-    //std::cout << "--------------\n after compressed: " << getId(cas.lca) << ", " << getId(cas.ca_x) << ", " << getId(cas.ca_y) << std::endl;
+    std::cout << "--------------\n after compressed: " << getId(cas.lca) << ", " << getId(cas.ca_x) << ", " << getId(cas.ca_y) << std::endl;
+    
+    if (cas.ca_x->inPath(cas.lca)) {
+        cout << "ca_x is in path of ca_lca (ca_x is apex? " << cas.ca_x->isApex << ")" << endl;
+    } else {
+        cout << "ca_x is NOT in path of ca_lca (ca_x is apex? " << cas.ca_x->isApex << ")" << endl;
+    }
+
+    if (cas.ca_y->inPath(cas.lca)) {
+        cout << "ca_y is in path of ca_lca (ca_y is apex? " << cas.ca_y->isApex << ")" << endl;
+    } else {
+        cout << "ca_y is NOT in path of ca_lca (ca_y is apex? " << cas.ca_y->isApex << ")" << endl;
+    }
+        
     TreeNode* b_x = (cas.ca_x->inPath(cas.lca)) ?
                      cas.ca_x : cas.ca_x->uncompressedParent;
     TreeNode* b_y = (cas.ca_y->inPath(cas.lca)) ?
                      cas.ca_y : cas.ca_y->uncompressedParent;
+    cout << "b_x: " << getId(b_x) << endl;
+    cout << "b_y: " << getId(b_y) << endl;
     TreeNode* result = ((b_x->uncompressedLevel < b_y->uncompressedLevel) ?
                         b_x : b_y);
 
@@ -293,21 +371,21 @@ TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
     }
 
     int i = floor(log(abs(nodeX->start - nodeY->start))/log(beta));
-    // std::cout  << "    size of ancestors: " << nodeX->ancestors.size() << std::endl;
-    // std::cout  << "    i: " << i << std::endl;
-    // std::cout  << "    start: " << nodeX->start << std::endl;
-    // std::cout  << "    end: " << nodeY->start << std::endl;
-    // std::cout  << "    abs(diff): " << abs(nodeX->start - nodeY->start) << std::endl;
-    // std::cout  << "    log_beta abs(diff): " << log(abs(nodeX->start - nodeY->start))/log(beta) << std::endl;
+    std::cout  << "    size of ancestors: " << nodeX->ancestors.size() << std::endl;
+    std::cout  << "    i: " << i << std::endl;
+    std::cout  << "    start: " << nodeX->start << std::endl;
+    std::cout  << "    end: " << nodeY->start << std::endl;
+    std::cout  << "    abs(diff): " << abs(nodeX->start - nodeY->start) << std::endl;
+    std::cout  << "    log_beta abs(diff): " << log(abs(nodeX->start - nodeY->start))/log(beta) << std::endl;
     TreeNode* v = nodeX->ancestors[i];
-    // std::cout  << "    v: " << getId(v) << std::endl;
+    std::cout  << "    v: " << getId(v) << std::endl;
     TreeNode* w;
     if (v) {
         w = v->parent;
     } else {
         w = nodeX;
     }
-    // std::cout  << "    w: " << getId(w) << std::endl;
+    std::cout  << "    w: " << getId(w) << std::endl;
 
     TreeNode* b;
     TreeNode* b_x;
@@ -318,23 +396,23 @@ TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
         b = w->parent;
         b_x = w;
     }
-    // std::cout  << "    b: " << getId(b) << std::endl;
-    // std::cout  << "    b_x: " << getId(b_x) << std::endl;
+    std::cout  << "    b: " << getId(b) << std::endl;
+    std::cout  << "    b_x: " << getId(b_x) << std::endl;
 
     TreeNode* a;
     TreeNode* a_x;
     if (b->isAncestorOf(nodeY)) {
-        // std::cout << "    b is an ancestor of y" << std::endl;
+        std::cout << "    b is an ancestor of y" << std::endl;
         a = b;
         a_x = b_x;
     } else {
-        // std::cout << "    b is NOT an ancestor of y" << std::endl;
+        std::cout << "    b is NOT an ancestor of y" << std::endl;
         a = b->parent;
         a_x = b;
     }
 
-    // std::cout  << "    a: " << getId(a) << std::endl;
-    // std::cout  << "    a_x: " << getId(a_x) << std::endl;
+    std::cout  << "    a: " << getId(a) << std::endl;
+    std::cout  << "    a_x: " << getId(a_x) << std::endl;
 
     // Symetric computation to compute a_y
     // TODO: Clean up this code
@@ -456,9 +534,10 @@ TreeNode* TreeNode::naiveLca(TreeNode* nodeX, TreeNode* nodeY) {
 // Basic Tree Operations //
 ///////////////////////////
 
-TreeNode::TreeNode(std::string id, int treeSize) {
+TreeNode::TreeNode(std::string id) {
     nodeId = id;
     parent = NULL;
+    root = NULL;
     uncompressedParent = NULL;
     subtreeSize = 0;
     dynamicSubtreeSize = 0;
@@ -467,10 +546,11 @@ TreeNode::TreeNode(std::string id, int treeSize) {
     isPreprocessed = false;
 
     start = 0, startBuffered = 0, end = 0, endBuffered = 0;
+    largestChildEndBuffer = 0;
 
-    int ancestorSize = 1 + floor(log(c * pow(treeSize, e))/log(beta)); //add +1 as buffer?
-    ancestors.resize(ancestorSize);
-    for (int i = 0; i < ancestorSize; ++i) {ancestors[i] = NULL;}
+    //int ancestorSize = 1 + floor(log(c * pow(treeSize, e))/log(beta)); //add +1 as buffer?
+    //ancestors.resize(ancestorSize, NULL);
+    //for (int i = 0; i < ancestorSize; ++i) {ancestors[i] = NULL;}
 }
 
 int TreeNode::getSubtreeSize(){
@@ -482,6 +562,20 @@ void TreeNode::addChild(TreeNode* child) {
     uncompressedChildren.push_back(child);
     child->parent = this;
     child->uncompressedParent = this;
+}
+
+// Removes edges WITHOUT freeing memory
+void TreeNode::deleteNode() {
+    if(uncompressedParent) {
+        uncompressedParent->uncompressedChildren.remove(this);
+    }
+
+    if (parent) {
+        parent->children.remove(this);
+    }
+
+    parent = NULL;
+    uncompressedParent = NULL;
 }
 
 void TreeNode::print() {
@@ -498,9 +592,10 @@ void TreeNode::print(int level) {
               << "isApex = " << isApex << ", "
               << "parentId = " << getId(parent) << ", "
               << "uncompparentId = " << getId(uncompressedParent) << ", "
-              << "level = " << uncompressedLevel << ")"
+              << "level = " << uncompressedLevel << ", "
+              << "preprocessed = " << isPreprocessed << ")"
               << std::endl;
-    for (TreeNode* child : children) {
+    for (TreeNode* child : uncompressedChildren) {
         child->print(level + 1);
     }
 }
@@ -515,7 +610,10 @@ void TreeNode::printIntervals(int level) {
               << "start = " << start << ", "
               << "end = " << end << ", "
               << "endB = " << endBuffered << ", "
-              << "len = "  << (c-2) * pow(subtreeSize, 2) << ")"
+              << "len = "  << (c-2) * pow(subtreeSize, e) << ", "
+              << "subSize = " << subtreeSize << ", "
+              << "dynamicSubSize = " << dynamicSubtreeSize << ", "
+              << "isApex = " << isApex << ")"
               << std::endl;
     for (TreeNode* child : children) {
         child->printIntervals(level + 1);
