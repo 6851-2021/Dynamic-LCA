@@ -33,7 +33,6 @@ class TreeNode {
 
         std::list<TreeNode*> uncompressedChildren;
         TreeNode* uncompressedParent;
-        int uncompressedSubtreeSize; //Not guaranteed to be up to date...
         int uncompressedLevel;
         
 

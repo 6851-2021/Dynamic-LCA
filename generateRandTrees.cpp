@@ -7,7 +7,6 @@ using namespace std;
 
 vector<vector<int>> randInsertionSeq(int numNodes) {
     treeAndNodes randTree = generateRandTree(numNodes);
-    randTree.tree->print();
     vector<vector<int>> insertions = randInsertionsFromTree(randTree.tree);
     for(TreeNode* node : randTree.nodes){
         delete node;

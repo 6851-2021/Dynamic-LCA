@@ -94,12 +94,9 @@ treeAndNodes generateIncrementalTree(int numNodes) {
     root->preprocess();
 
     for (int i = leaves.size() - 1; i >= 0; --i) {
-        cout << "-------ADDING leaf " << leaves[i] << endl;
         nodes[parents[i]]->add_leaf(nodes[leaves[i]]);
     }
     
-    cout << "000000 FINISHED CREATING TREE 0000000" << endl;
-    // root->print();
     treeAndNodes toReturn;
     toReturn.tree = root;
     toReturn.nodes = nodes;
@@ -107,7 +104,7 @@ treeAndNodes generateIncrementalTree(int numNodes) {
 }
 
 void testAddNode() {
-    int numNodes = 1000;
+    int numNodes = 100;
 
     for (int i = 0; i < 50; ++i)
     {
@@ -118,21 +115,12 @@ void testAddNode() {
         // randTree.tree->printIntervals(0);
         // cout << "*** ANCESTORS ***" << endl;
         // randTree.tree->printAncestors(0);
-        for (int j = 0; j < 1000; ++j)
+        for (int j = 0; j < 100; ++j)
         {
             int nodeX = rand() % numNodes;
             int nodeY = rand() % numNodes;
 
-            // cout << "***********" << endl;
-            // cout << "*** UNCOMPRESSED TREE ***" << endl;
-            // randTree.tree->print();
-            // cout << "*** COMPRESSED DYNAMIC TREE ***" << endl;
-            // randTree.tree->printIntervals(0);
-            // cout << "*** ANCESTORS ***" << endl;
-            // randTree.tree->printAncestors(0);
-            // cout << "***********" << endl;
-
-            cout << "Computing LCA of " << nodeX << " and " << nodeY << endl;
+            // cout << "Computing LCA of " << nodeX << " and " << nodeY << endl;
             TreeNode* lca1 = TreeNode::lca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
             TreeNode* lca2 = TreeNode::naiveLca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
             std::cout << i << "." << j << ") LCA of " << nodeX << ", " << nodeY << ": "<< lca1->nodeId << " and " << lca2->nodeId << std::endl;
@@ -142,27 +130,10 @@ void testAddNode() {
         }
 
         deleteTree(randTree.tree);
-    }
-
-    // cout << "Leaves: ";
-    // for (int leaf : leaves) {
-    //     cout << leaf << ", ";
-    // }
-    // cout << endl;
-
-    // cout << "Parents: ";
-    // for (int parent : parents) {
-    //     cout << parent << ", ";
-    // }
-    // cout << endl;
-    // assert(leaves.size() == parents.size());
-    
+    }    
 }
 
 void smallTestAddNode() {
-    //std::vector<int> seq = {1,1,1,1,6,5};
-    //std::vector<int> seq = {0,0,0,0,5,4};
-
     int numNodes = 6;
     for (int i = 0; i < 1; ++i)
     {
@@ -199,7 +170,10 @@ void smallTestAddNode() {
         cout << "Randomly chose leaf: " << leaf->nodeId << endl;
 
     
-        deleteTree(randTree.tree);
+        // deleteTree(randTree.tree);
+        for (TreeNode* node : randTree.nodes) {
+            delete node;
+        }
     }
 }
 int main(){
