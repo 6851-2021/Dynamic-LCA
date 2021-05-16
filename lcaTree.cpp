@@ -8,12 +8,12 @@ using std::endl;
 ////////    LCA for Static Trees    ///////
 ///////////////////////////////////////////
 
-std::string getId(TreeNode* node) {
+std::string getId(ExpensiveTreeNode* node) {
     if (node) {return (node->nodeId);}
     else {return "NULL";}
 }
 
-std::string strAncestorTable(std::vector<TreeNode*> ancestors) {
+std::string strAncestorTable(std::vector<ExpensiveTreeNode*> ancestors) {
     std::string result = "[";
     for (size_t i = 0; i < ancestors.size(); ++i)
     {
@@ -34,7 +34,7 @@ int intpow(int x, int n) {
     return(result);
 }
 
-void TreeNode::preprocess() {
+void ExpensiveTreeNode::preprocess() {
     assignSubtreeSizes(false); // Subtree sizes based on uncompressed values
     assignApex(true);
     assignLevels(0);
@@ -48,7 +48,7 @@ void TreeNode::preprocess() {
     setPreprocessedFlag();
 }
 
-void TreeNode::recompress() {
+void ExpensiveTreeNode::recompress() {
     this->assignSubtreeSizes(false); //with compressed = false
     this->assignApex(true);
     isApex = true; // Treat the current node as the "root", even though it could have a parent
@@ -68,19 +68,19 @@ void TreeNode::recompress() {
     }
 }
 
-void TreeNode::setPreprocessedFlag() {
+void ExpensiveTreeNode::setPreprocessedFlag() {
     isPreprocessed = true;
-    for (TreeNode* child : children) {
+    for (ExpensiveTreeNode* child : children) {
         child->setPreprocessedFlag();
     }
 }
 
 // TODO: Take in a parameter "compressed" and switch between children lists based on that?
-int TreeNode::assignSubtreeSizes(bool useCompressed) {
+int ExpensiveTreeNode::assignSubtreeSizes(bool useCompressed) {
     subtreeSize = 1;
     dynamicSubtreeSize = 1;
-    std::list<TreeNode*> childrenList = useCompressed ? children : uncompressedChildren;
-    for (TreeNode* child : childrenList) {
+    std::list<ExpensiveTreeNode*> childrenList = useCompressed ? children : uncompressedChildren;
+    for (ExpensiveTreeNode* child : childrenList) {
         int childSize = child->assignSubtreeSizes(useCompressed);
         subtreeSize += childSize;
         dynamicSubtreeSize += childSize;
@@ -89,7 +89,7 @@ int TreeNode::assignSubtreeSizes(bool useCompressed) {
 }
 
 // A node is apex if it is not a heavy child
-void TreeNode::assignApex(bool isRoot) {
+void ExpensiveTreeNode::assignApex(bool isRoot) {
     // Assign apex based on subtreeSize
     if (isRoot) {
         isApex = true;
@@ -102,17 +102,17 @@ void TreeNode::assignApex(bool isRoot) {
         uncompressedParent->heavyChild = this;
     }
 
-    for (TreeNode* child : uncompressedChildren) {child->assignApex(false);}
+    for (ExpensiveTreeNode* child : uncompressedChildren) {child->assignApex(false);}
 }
 
-void TreeNode::assignRoot(TreeNode* node) {
+void ExpensiveTreeNode::assignRoot(ExpensiveTreeNode* node) {
     root = node;
-    for (TreeNode* child : children) {child->assignRoot(node);}
+    for (ExpensiveTreeNode* child : children) {child->assignRoot(node);}
 }
 
 // uncompressedParent and uncompressedChildren and uncompressedLevel remain unchanged
 // "parent", "children", and "subtreeSize" now refer to the compressed tree
-void TreeNode::compressTree(bool isRoot){
+void ExpensiveTreeNode::compressTree(bool isRoot){
     children.clear();
 
     // Set parent pointer
@@ -131,20 +131,20 @@ void TreeNode::compressTree(bool isRoot){
     }
 
     // Recursively update
-    for (TreeNode* child : uncompressedChildren) {child->compressTree();} //Recurse first
+    for (ExpensiveTreeNode* child : uncompressedChildren) {child->compressTree();} //Recurse first
 
     // TODO: move this outside
     assignSubtreeSizes(true);
 }
 
-void TreeNode::assignIntervals(){
+void ExpensiveTreeNode::assignIntervals(){
     this->startBuffered = 0;
     this->endBuffered = c * pow(this->subtreeSize, e);
     this->contAssignIntervals();
 }
 
 //TODO: make this more general by passing in a funtion "sigma" as an argument
-void TreeNode::contAssignIntervals() {
+void ExpensiveTreeNode::contAssignIntervals() {
     // Calculate fat preorder numbering
     long long buffer = pow(this->subtreeSize, e);
     start = startBuffered + buffer;
@@ -155,7 +155,7 @@ void TreeNode::contAssignIntervals() {
     // Assign buffered intervals to children & recurse
     long long currChildStart = start + 1;
     long long intervalSize;
-    for (TreeNode* child : children) {
+    for (ExpensiveTreeNode* child : children) {
         intervalSize = c * pow(child->subtreeSize, e);
         child->startBuffered = currChildStart;
         child->endBuffered = currChildStart + intervalSize;
@@ -169,15 +169,15 @@ void TreeNode::contAssignIntervals() {
 }
 
 
-void TreeNode::fillAllAncestors(){
+void ExpensiveTreeNode::fillAllAncestors(){
     this->fillAncestorTable();
     // std::cout << "    " << nodeId << " TABLE: "<< strAncestorTable(ancestors) << std::endl;
-    for (TreeNode* child : children) {
+    for (ExpensiveTreeNode* child : children) {
         child->fillAllAncestors();
     }
 }
 
-void TreeNode::fillAncestorTable(){
+void ExpensiveTreeNode::fillAncestorTable(){
     int currTreeSize = root->subtreeSize;
     int ancestorSize = 1 + floor(log(c * pow(currTreeSize, e))/log(beta)); //add +1 as buffer?
     ancestors.resize(ancestorSize, NULL);
@@ -187,8 +187,8 @@ void TreeNode::fillAncestorTable(){
     }
 
     size_t i = 0;
-    TreeNode* currNode = this;
-    TreeNode* nextNode = currNode->parent;
+    ExpensiveTreeNode* currNode = this;
+    ExpensiveTreeNode* nextNode = currNode->parent;
 
     bool currIsLess = (c - 2) * pow(currNode->subtreeSize, e) < pow(beta, i);
     while (!currIsLess) {
@@ -214,10 +214,10 @@ void TreeNode::fillAncestorTable(){
     }
 }
 
-void TreeNode::assignLevels(int level) {
+void ExpensiveTreeNode::assignLevels(int level) {
     this->uncompressedLevel = level;
 
-    for (TreeNode* child : uncompressedChildren) {
+    for (ExpensiveTreeNode* child : uncompressedChildren) {
         child->assignLevels(level + 1);
     }
 }
@@ -225,7 +225,7 @@ void TreeNode::assignLevels(int level) {
 ////////////////////////
 // Dynamic Operations //
 ////////////////////////
-void TreeNode::add_leaf(TreeNode* leaf) {
+void ExpensiveTreeNode::add_leaf(ExpensiveTreeNode* leaf) {
 
     // Add leaf to original tree
     uncompressedChildren.push_back(leaf);
@@ -244,7 +244,7 @@ void TreeNode::add_leaf(TreeNode* leaf) {
     }
 
     // Update subtree sizes
-    TreeNode* currNode = leaf;
+    ExpensiveTreeNode* currNode = leaf;
 
     leaf->subtreeSize = 1; //TODO check - By convention, dynamicSubtreeSize >= alpha * subtreeSize holds for `leaf`: so start it at 0
     leaf->dynamicSubtreeSize = 0; //start at 0 so that we increment to 1 on the first loop
@@ -277,35 +277,35 @@ void TreeNode::add_leaf(TreeNode* leaf) {
 ///////////////////////
 
 
-TreeNode* TreeNode::lca(TreeNode* nodeX, TreeNode* nodeY) {
-    TreeNode::caTuple allCas = cas(nodeX, nodeY);
+ExpensiveTreeNode* ExpensiveTreeNode::lca(ExpensiveTreeNode* nodeX, ExpensiveTreeNode* nodeY) {
+    ExpensiveTreeNode::caTuple allCas = cas(nodeX, nodeY);
     return allCas.lca;
 }
 
-TreeNode::caTuple TreeNode::cas(TreeNode* nodeX, TreeNode* nodeY) {
+ExpensiveTreeNode::caTuple ExpensiveTreeNode::cas(ExpensiveTreeNode* nodeX, ExpensiveTreeNode* nodeY) {
     if (!nodeX->isPreprocessed or !nodeY->isPreprocessed) {
         std::cout << "Error: Tree must be preprocessed before calling LCA." << std::endl;
         exit(-1);
     } else if (nodeX == nodeY) {
-        TreeNode::caTuple result = {/* lca = */  nodeX,
+        ExpensiveTreeNode::caTuple result = {/* lca = */  nodeX,
                                     /* ca_x = */ nodeX,
                                     /* ca_y = */ nodeX};
         return result;
     }
 
-    TreeNode::caTuple compressedCas = casCompressed(nodeX, nodeY);
+    ExpensiveTreeNode::caTuple compressedCas = casCompressed(nodeX, nodeY);
     // std::cout << "--------------\n after compressed: " << getId(compressedCas.lca) << ", " << getId(compressedCas.ca_x) << ", " << getId(compressedCas.ca_y) << std::endl;
             
     // Find LCA from compressed CAs
-    TreeNode* b_x = (compressedCas.ca_x->inPath(compressedCas.lca)) ?
+    ExpensiveTreeNode* b_x = (compressedCas.ca_x->inPath(compressedCas.lca)) ?
                      compressedCas.ca_x : compressedCas.ca_x->uncompressedParent;
-    TreeNode* b_y = (compressedCas.ca_y->inPath(compressedCas.lca)) ?
+    ExpensiveTreeNode* b_y = (compressedCas.ca_y->inPath(compressedCas.lca)) ?
                      compressedCas.ca_y : compressedCas.ca_y->uncompressedParent;
-    TreeNode* lca = ((b_x->uncompressedLevel < b_y->uncompressedLevel) ?
+    ExpensiveTreeNode* lca = ((b_x->uncompressedLevel < b_y->uncompressedLevel) ?
                         b_x : b_y);
 
     // Find CA_X from compressed CAs
-    TreeNode* ca_x;
+    ExpensiveTreeNode* ca_x;
     if (lca != b_x) {
         // In this case, lca must have a heavy child (cannot be NULL)
         ca_x = lca->heavyChild;
@@ -317,7 +317,7 @@ TreeNode::caTuple TreeNode::cas(TreeNode* nodeX, TreeNode* nodeY) {
     }
 
     // Symmetrically, find CA_Y from compressed CAs
-    TreeNode* ca_y;
+    ExpensiveTreeNode* ca_y;
     if (lca != b_y) {
         ca_y = lca->heavyChild;
     } else if (lca == b_y && lca != compressedCas.ca_y) {
@@ -327,11 +327,11 @@ TreeNode::caTuple TreeNode::cas(TreeNode* nodeX, TreeNode* nodeY) {
     }
 
     // Return result
-    TreeNode::caTuple result = {lca, ca_x, ca_y};
+    ExpensiveTreeNode::caTuple result = {lca, ca_x, ca_y};
     return result;
 }
 
-bool TreeNode::inPath(TreeNode* apex) {
+bool ExpensiveTreeNode::inPath(ExpensiveTreeNode* apex) {
     if (this == apex) {
         return true;
     } else {
@@ -340,7 +340,7 @@ bool TreeNode::inPath(TreeNode* apex) {
 }
 
 // Note: nodeX cannot be equal to nodeY
-TreeNode::caTuple TreeNode::casCompressed(TreeNode* nodeX, TreeNode* nodeY) {
+ExpensiveTreeNode::caTuple ExpensiveTreeNode::casCompressed(ExpensiveTreeNode* nodeX, ExpensiveTreeNode* nodeY) {
     assert(nodeX != nodeY);
 
     if (!nodeX->isPreprocessed or !nodeY->isPreprocessed) {
@@ -355,9 +355,9 @@ TreeNode::caTuple TreeNode::casCompressed(TreeNode* nodeX, TreeNode* nodeY) {
     // std::cout  << "    end: " << nodeY->start << std::endl;
     // std::cout  << "    abs(diff): " << abs(nodeX->start - nodeY->start) << std::endl;
     // std::cout  << "    log_beta abs(diff): " << log(abs(nodeX->start - nodeY->start))/log(beta) << std::endl;
-    TreeNode* v = nodeX->ancestors[i];
+    ExpensiveTreeNode* v = nodeX->ancestors[i];
     // std::cout  << "    v: " << getId(v) << std::endl;
-    TreeNode* w;
+    ExpensiveTreeNode* w;
     if (v) {
         w = v->parent;
     } else {
@@ -365,8 +365,8 @@ TreeNode::caTuple TreeNode::casCompressed(TreeNode* nodeX, TreeNode* nodeY) {
     }
     // std::cout  << "    w: " << getId(w) << std::endl;
 
-    TreeNode* b;
-    TreeNode* b_x;
+    ExpensiveTreeNode* b;
+    ExpensiveTreeNode* b_x;
     if ((c - 2) * pow(w->subtreeSize, e) > abs(nodeX->start - nodeY->start)) {
         b = w;
         if (v) {b_x = v;} else {b_x = nodeX;}
@@ -377,8 +377,8 @@ TreeNode::caTuple TreeNode::casCompressed(TreeNode* nodeX, TreeNode* nodeY) {
     // std::cout  << "    b: " << getId(b) << std::endl;
     // std::cout  << "    b_x: " << getId(b_x) << std::endl;
 
-    TreeNode* a;
-    TreeNode* a_x;
+    ExpensiveTreeNode* a;
+    ExpensiveTreeNode* a_x;
     if (b->isAncestorOf(nodeY)) {
         // std::cout << "    b is an ancestor of y" << std::endl;
         a = b;
@@ -401,7 +401,7 @@ TreeNode::caTuple TreeNode::casCompressed(TreeNode* nodeX, TreeNode* nodeY) {
     if (v) {w = v->parent;} else {w = nodeY;}
     // std::cout  << "    w: " << getId(w) << std::endl;
 
-    TreeNode* b_y;
+    ExpensiveTreeNode* b_y;
     if ((c - 2) * pow(w->subtreeSize, e) > abs(nodeX->start - nodeY->start)) {
         b = w;
         if (v) {b_y = v;} else {b_y = nodeY;}
@@ -413,7 +413,7 @@ TreeNode::caTuple TreeNode::casCompressed(TreeNode* nodeX, TreeNode* nodeY) {
     // std::cout  << "    b_y: " << getId(b_x) << std::endl;
 
 
-    TreeNode* a_y;
+    ExpensiveTreeNode* a_y;
     if (b->isAncestorOf(nodeX)) {
         // std::cout << "    b is an ancestor of x" << std::endl;
         a = b;
@@ -434,25 +434,25 @@ TreeNode::caTuple TreeNode::casCompressed(TreeNode* nodeX, TreeNode* nodeY) {
     return(toReturn);
 }
 
-bool TreeNode::isAncestorOf(TreeNode* node) {
+bool ExpensiveTreeNode::isAncestorOf(ExpensiveTreeNode* node) {
     return (start <= node->start) && (node->start <= end);
 }
 
-TreeNode* TreeNode::naiveLca(TreeNode* nodeX, TreeNode* nodeY) {
-    TreeNode::caTuple allCas = naiveCas(nodeX, nodeY);
+ExpensiveTreeNode* ExpensiveTreeNode::naiveLca(ExpensiveTreeNode* nodeX, ExpensiveTreeNode* nodeY) {
+    ExpensiveTreeNode::caTuple allCas = naiveCas(nodeX, nodeY);
     return(allCas.lca);
 }
 
-TreeNode::caTuple TreeNode::naiveCas(TreeNode* nodeX, TreeNode* nodeY) {
+ExpensiveTreeNode::caTuple ExpensiveTreeNode::naiveCas(ExpensiveTreeNode* nodeX, ExpensiveTreeNode* nodeY) {
     if (nodeX == nodeY) {
-        TreeNode::caTuple toReturn = {nodeX, nodeX, nodeX};
+        ExpensiveTreeNode::caTuple toReturn = {nodeX, nodeX, nodeX};
         return(toReturn);
     }
 
-    // std::deque<TreeNode*> xPathComp;
-    // std::deque<TreeNode*> yPathComp;
+    // std::deque<ExpensiveTreeNode*> xPathComp;
+    // std::deque<ExpensiveTreeNode*> yPathComp;
 
-    // TreeNode* currNode = nodeX;
+    // ExpensiveTreeNode* currNode = nodeX;
     // while (currNode) {
     //     xPathComp.push_front(currNode);
     //     currNode = currNode->parent;
@@ -465,21 +465,21 @@ TreeNode::caTuple TreeNode::naiveCas(TreeNode* nodeX, TreeNode* nodeY) {
     // }
 
     // std::cout << "X PATH COMP: ";
-    // for (TreeNode* node : xPathComp) {
+    // for (ExpensiveTreeNode* node : xPathComp) {
     //     std::cout << getId(node) << "->";
     // }
     // std::cout << std::endl;
 
     // std::cout << "Y PATH COMP: ";
-    // for (TreeNode* node : yPathComp) {
+    // for (ExpensiveTreeNode* node : yPathComp) {
     //     std::cout << getId(node) << "->";
     // }
     // std::cout << std::endl;
 
-    std::deque<TreeNode*> xPath;
-    std::deque<TreeNode*> yPath;
+    std::deque<ExpensiveTreeNode*> xPath;
+    std::deque<ExpensiveTreeNode*> yPath;
     
-    TreeNode* currNode = nodeX;
+    ExpensiveTreeNode* currNode = nodeX;
     while (currNode) {
         xPath.push_front(currNode);
         currNode = currNode->uncompressedParent;
@@ -492,13 +492,13 @@ TreeNode::caTuple TreeNode::naiveCas(TreeNode* nodeX, TreeNode* nodeY) {
     }
 
     // std::cout << "X PATH: ";
-    // for (TreeNode* node : xPath) {
+    // for (ExpensiveTreeNode* node : xPath) {
     //     std::cout << getId(node) << "->";
     // }
     // std::cout << std::endl;
 
     // std::cout << "Y PATH: ";
-    // for (TreeNode* node : yPath) {
+    // for (ExpensiveTreeNode* node : yPath) {
     //     std::cout << getId(node) << "->";
     // }
     // std::cout << std::endl;
@@ -508,10 +508,10 @@ TreeNode::caTuple TreeNode::naiveCas(TreeNode* nodeX, TreeNode* nodeY) {
         i++;
     }
 
-    TreeNode* lca = xPath[i-1];
-    TreeNode* ca_x = i < xPath.size() ? xPath[i] : xPath[xPath.size() - 1];
-    TreeNode* ca_y = i < yPath.size() ? yPath[i] : yPath[yPath.size() - 1];
-    TreeNode::caTuple toReturn = {lca, ca_x, ca_y};
+    ExpensiveTreeNode* lca = xPath[i-1];
+    ExpensiveTreeNode* ca_x = i < xPath.size() ? xPath[i] : xPath[xPath.size() - 1];
+    ExpensiveTreeNode* ca_y = i < yPath.size() ? yPath[i] : yPath[yPath.size() - 1];
+    ExpensiveTreeNode::caTuple toReturn = {lca, ca_x, ca_y};
     
     return (toReturn);
 }
@@ -520,7 +520,7 @@ TreeNode::caTuple TreeNode::naiveCas(TreeNode* nodeX, TreeNode* nodeY) {
 // Basic Tree Operations //
 ///////////////////////////
 
-TreeNode::TreeNode(std::string id) {
+ExpensiveTreeNode::ExpensiveTreeNode(std::string id) {
     nodeId = id;
     parent = NULL;
     root = NULL;
@@ -536,11 +536,11 @@ TreeNode::TreeNode(std::string id) {
     largestChildEndBuffer = 0;
 }
 
-int TreeNode::getSubtreeSize(){
+int ExpensiveTreeNode::getSubtreeSize(){
     return (this->subtreeSize);
 }
 
-void TreeNode::addChild(TreeNode* child) {
+void ExpensiveTreeNode::addChild(ExpensiveTreeNode* child) {
     children.push_back(child);
     uncompressedChildren.push_back(child);
     child->parent = this;
@@ -548,7 +548,7 @@ void TreeNode::addChild(TreeNode* child) {
 }
 
 // Removes edges WITHOUT freeing memory
-void TreeNode::deleteNode() {
+void ExpensiveTreeNode::deleteNode() {
     if(uncompressedParent) {
         uncompressedParent->uncompressedChildren.remove(this);
     }
@@ -561,11 +561,11 @@ void TreeNode::deleteNode() {
     uncompressedParent = NULL;
 }
 
-void TreeNode::print() {
+void ExpensiveTreeNode::print() {
     this->print(0);
 }
 
-void TreeNode::print(int level) {
+void ExpensiveTreeNode::print(int level) {
     for (int i = 0; i < level; i++){
         std::cout << "    ";
     }
@@ -578,12 +578,12 @@ void TreeNode::print(int level) {
               << "level = " << uncompressedLevel << ", "
               << "heavyChild = " << getId(heavyChild) << ")"
               << std::endl;
-    for (TreeNode* child : uncompressedChildren) {
+    for (ExpensiveTreeNode* child : uncompressedChildren) {
         child->print(level + 1);
     }
 }
 
-void TreeNode::printIntervals(int level) {
+void ExpensiveTreeNode::printIntervals(int level) {
     for (int i = 0; i < level; i++){
         std::cout << "    ";
     }
@@ -598,12 +598,12 @@ void TreeNode::printIntervals(int level) {
               << "dynamicSubSize = " << dynamicSubtreeSize << ", "
               << "isApex = " << isApex << ")"
               << std::endl;
-    for (TreeNode* child : children) {
+    for (ExpensiveTreeNode* child : children) {
         child->printIntervals(level + 1);
     }
 }
 
-void TreeNode::printAncestors(int level) {
+void ExpensiveTreeNode::printAncestors(int level) {
     for (int i = 0; i < level; i++){
         std::cout << "    ";
     }
@@ -611,7 +611,7 @@ void TreeNode::printAncestors(int level) {
     std::cout << "Node " << nodeId
               << strAncestorTable(this->ancestors)
               << std::endl;
-    for (TreeNode* child : children) {
+    for (ExpensiveTreeNode* child : children) {
         child->printAncestors(level + 1);
     }
 }

@@ -8,19 +8,19 @@ using namespace std;
 vector<vector<int>> randInsertionSeq(int numNodes) {
     treeAndNodes randTree = generateRandTree(numNodes);
     vector<vector<int>> insertions = randInsertionsFromTree(randTree.tree);
-    for(TreeNode* node : randTree.nodes){
+    for(ExpensiveTreeNode* node : randTree.nodes){
         delete node;
     }
     return insertions;
 }
 
 // Destructively transforms a tree into a sequence of leaves to add
-vector<vector<int>> randInsertionsFromTree(TreeNode* root) {
+vector<vector<int>> randInsertionsFromTree(ExpensiveTreeNode* root) {
     vector<int> leafIds;
     vector<int> parentIds;
 
     while(root->uncompressedChildren.size() > 0) {
-        TreeNode* leaf = getRandLeaf(root);
+        ExpensiveTreeNode* leaf = getRandLeaf(root);
         leafIds.push_back(stoi(leaf->nodeId));
         if (leaf->uncompressedParent){
             parentIds.push_back(stoi(leaf->uncompressedParent->nodeId));
@@ -33,19 +33,19 @@ vector<vector<int>> randInsertionsFromTree(TreeNode* root) {
     return {leafIds, parentIds};
 }
 
-TreeNode* getRandLeaf(TreeNode* root) {
-    TreeNode* currNode = root;
-    std::list<TreeNode*> children = currNode->uncompressedChildren;
+ExpensiveTreeNode* getRandLeaf(ExpensiveTreeNode* root) {
+    ExpensiveTreeNode* currNode = root;
+    std::list<ExpensiveTreeNode*> children = currNode->uncompressedChildren;
     while (children.size() > 0) {
         size_t childNum = rand() % children.size();
-        std::list<TreeNode*>::iterator it = std::next(children.begin(), childNum);
+        std::list<ExpensiveTreeNode*>::iterator it = std::next(children.begin(), childNum);
         currNode = *it;
         children = currNode->uncompressedChildren;
     }
     return currNode;
 }
 
-void assignChildrenDFS(int currNode, vector<TreeNode*> nodes, vector<vector<int>> adjList, vector<bool> discovered) {
+void assignChildrenDFS(int currNode, vector<ExpensiveTreeNode*> nodes, vector<vector<int>> adjList, vector<bool> discovered) {
     discovered[currNode] = true;
     for (int childNode : adjList[currNode]) {
         if (!discovered[childNode]) {
@@ -58,11 +58,11 @@ void assignChildrenDFS(int currNode, vector<TreeNode*> nodes, vector<vector<int>
 treeAndNodes treeFromAdj(vector<vector<int>> adjList, vector<int> seq) {
     int treeSize = adjList.size();
 
-    vector<TreeNode*> nodes(treeSize);
+    vector<ExpensiveTreeNode*> nodes(treeSize);
     vector<bool> discovered(treeSize);
     for (int i = 0; i < treeSize; ++i)
     {
-        nodes[i] = new TreeNode(to_string(i));
+        nodes[i] = new ExpensiveTreeNode(to_string(i));
         discovered[i] = false;
     }
 
@@ -124,8 +124,8 @@ treeAndNodes treeFromSeq(vector<int> seq) {
     return (treeFromAdj(adjList, seq));
 }
 
-void deleteTree(TreeNode* node) {
-    for (TreeNode* child : node->children) {
+void deleteTree(ExpensiveTreeNode* node) {
+    for (ExpensiveTreeNode* child : node->children) {
         deleteTree(child);
     }
     delete node;

@@ -5,12 +5,12 @@
 #include <string>
 #include <vector>
 
-class TreeNode {
+class ExpensiveTreeNode {
      public:
         struct caTuple {
-            TreeNode* lca;
-            TreeNode* ca_x;
-            TreeNode* ca_y;
+            ExpensiveTreeNode* lca;
+            ExpensiveTreeNode* ca_x;
+            ExpensiveTreeNode* ca_y;
         };
 
         static constexpr float beta = 10.0/7.0;
@@ -19,21 +19,21 @@ class TreeNode {
         static constexpr float alpha = 6.0/5.0;
 
         //Static: beta = 2, e = 2, c = 4
-        //typedef int (TreeNode::*sigmaType)();
+        //typedef int (ExpensiveTreeNode::*sigmaType)();
 
         std::string nodeId;
-        std::list<TreeNode*> children;
-        TreeNode* parent;
-        TreeNode* root; // Used to determine number of nodes in the tree (to determine size of ancestor tables)
+        std::list<ExpensiveTreeNode*> children;
+        ExpensiveTreeNode* parent;
+        ExpensiveTreeNode* root; // Used to determine number of nodes in the tree (to determine size of ancestor tables)
         int subtreeSize; // subtreeSize used in current fat preordering
         int dynamicSubtreeSize; // dynamically updated subtreeSize
 
         bool isApex;
-        TreeNode* heavyChild;
+        ExpensiveTreeNode* heavyChild;
         bool isPreprocessed;
 
-        std::list<TreeNode*> uncompressedChildren;
-        TreeNode* uncompressedParent;
+        std::list<ExpensiveTreeNode*> uncompressedChildren;
+        ExpensiveTreeNode* uncompressedParent;
         int uncompressedLevel;
         
 
@@ -44,13 +44,13 @@ class TreeNode {
         long long endBuffered; //last integer in the buffered interval (inclusive)
         long long largestChildEndBuffer;
 
-        std::vector<TreeNode*> ancestors; //ancestor table
+        std::vector<ExpensiveTreeNode*> ancestors; //ancestor table
 
         // Basic Tree Operations
-        TreeNode(std::string id); //Because tree is static, we get to know treeSize in advance
+        ExpensiveTreeNode(std::string id); //Because tree is static, we get to know treeSize in advance
         void print();
         void printIntervals(int level);
-        void addChild(TreeNode* child);
+        void addChild(ExpensiveTreeNode* child);
         void deleteNode();
 
         // Methods for Static Preprocessing
@@ -58,11 +58,11 @@ class TreeNode {
         void setPreprocessedFlag();
         int assignSubtreeSizes(bool useCompressed); //Returns size of tree
         void assignApex(bool isRoot);
-        void assignRoot(TreeNode* node);
+        void assignRoot(ExpensiveTreeNode* node);
         void compressTree(bool isRoot = false);
-        bool inPath(TreeNode* apex);
+        bool inPath(ExpensiveTreeNode* apex);
         
-        //TODO: add back sigmaType sigma= &TreeNode::getSubtreeSize
+        //TODO: add back sigmaType sigma= &ExpensiveTreeNode::getSubtreeSize
         void assignIntervals();
         void contAssignIntervals();
 
@@ -75,16 +75,16 @@ class TreeNode {
         void assignLevels(int level);
         
         void recompress();
-        void add_leaf(TreeNode* leaf);
+        void add_leaf(ExpensiveTreeNode* leaf);
 
         // Query
-        static TreeNode* lca(TreeNode* nodeA, TreeNode* nodeB);
-        static caTuple cas(TreeNode* nodeA, TreeNode* nodeB);
-        static caTuple casCompressed(TreeNode* nodeX, TreeNode* nodeY);
-        static TreeNode* naiveLca(TreeNode* nodeX, TreeNode* nodeY);
-        static caTuple naiveCas(TreeNode* nodeA, TreeNode* nodeB);
+        static ExpensiveTreeNode* lca(ExpensiveTreeNode* nodeA, ExpensiveTreeNode* nodeB);
+        static caTuple cas(ExpensiveTreeNode* nodeA, ExpensiveTreeNode* nodeB);
+        static caTuple casCompressed(ExpensiveTreeNode* nodeX, ExpensiveTreeNode* nodeY);
+        static ExpensiveTreeNode* naiveLca(ExpensiveTreeNode* nodeX, ExpensiveTreeNode* nodeY);
+        static caTuple naiveCas(ExpensiveTreeNode* nodeA, ExpensiveTreeNode* nodeB);
 
-        bool isAncestorOf(TreeNode* node);
+        bool isAncestorOf(ExpensiveTreeNode* node);
     private:
         void print(int level);
  };

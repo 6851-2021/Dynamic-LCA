@@ -12,14 +12,14 @@ using std::cout;
 using std::endl;
 
 void smallStaticLCA() {
-    TreeNode root = TreeNode("0");
-    TreeNode node1L = TreeNode("1-L");
-    TreeNode node1R = TreeNode("1-R");
-    TreeNode node2 = TreeNode("2");
-    TreeNode node3 = TreeNode("3");
-    TreeNode node4L = TreeNode("4-L");
-    TreeNode node4R = TreeNode("4-R");
-    TreeNode node5 = TreeNode("5");
+    ExpensiveTreeNode root = ExpensiveTreeNode("0");
+    ExpensiveTreeNode node1L = ExpensiveTreeNode("1-L");
+    ExpensiveTreeNode node1R = ExpensiveTreeNode("1-R");
+    ExpensiveTreeNode node2 = ExpensiveTreeNode("2");
+    ExpensiveTreeNode node3 = ExpensiveTreeNode("3");
+    ExpensiveTreeNode node4L = ExpensiveTreeNode("4-L");
+    ExpensiveTreeNode node4R = ExpensiveTreeNode("4-R");
+    ExpensiveTreeNode node5 = ExpensiveTreeNode("5");
     root.addChild(&node1L);
     root.addChild(&node1R);
     node1R.addChild(&node2);
@@ -39,11 +39,11 @@ void smallStaticLCA() {
     //root.printAncestors(0);
     //std::cout << "\n--------\n\n";
 
-    TreeNode::lca(&node1L, &node1R); //0
-    TreeNode::lca(&node4R, &node4L); //3
-    TreeNode::lca(&node5, &node4L); //4L
-    TreeNode::lca(&node2, &node4L); //2
-    TreeNode::lca(&node1L, &node4L); //0
+    ExpensiveTreeNode::lca(&node1L, &node1R); //0
+    ExpensiveTreeNode::lca(&node4R, &node4L); //3
+    ExpensiveTreeNode::lca(&node5, &node4L); //4L
+    ExpensiveTreeNode::lca(&node2, &node4L); //2
+    ExpensiveTreeNode::lca(&node1L, &node4L); //0
 }
 
 void testRandTree() {
@@ -66,8 +66,8 @@ void testRandTree() {
             int nodeX = rand() % numNodes;
             int nodeY = rand() % numNodes;
             //std::cout << "Computing LCA of " << nodeX << ", " << nodeY << std::endl;
-            TreeNode* lca1 = TreeNode::lca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
-            TreeNode* lca2 = TreeNode::naiveLca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
+            ExpensiveTreeNode* lca1 = ExpensiveTreeNode::lca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
+            ExpensiveTreeNode* lca2 = ExpensiveTreeNode::naiveLca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
             std::cout << i << "." << j << ") LCA of " << nodeX << ", " << nodeY << ": "<< lca1->nodeId << " and " << lca2->nodeId << std::endl;
     
             assert(lca1 != NULL);
@@ -84,13 +84,13 @@ treeAndNodes generateIncrementalTree(int numNodes) {
     std::vector<int> leaves = sequences[0];
     std::vector<int> parents = sequences[1];
 
-    std::vector<TreeNode*> nodes(numNodes);
+    std::vector<ExpensiveTreeNode*> nodes(numNodes);
     for (int i = 0; i < numNodes; ++i)
     {
-        nodes[i] = new TreeNode(std::to_string(i));
+        nodes[i] = new ExpensiveTreeNode(std::to_string(i));
     }
 
-    TreeNode* root = nodes[parents[parents.size() - 1]];
+    ExpensiveTreeNode* root = nodes[parents[parents.size() - 1]];
     root->preprocess();
 
     for (int i = leaves.size() - 1; i >= 0; --i) {
@@ -103,7 +103,7 @@ treeAndNodes generateIncrementalTree(int numNodes) {
     return toReturn;
 }
 
-std::string getId1(TreeNode* node) {
+std::string getId1(ExpensiveTreeNode* node) {
     if (node) {return (node->nodeId);}
     else {return "NULL";}
 }
@@ -126,8 +126,8 @@ void testAddNode() {
             int nodeY = rand() % numNodes;
 
             // cout << "Computing LCA of " << nodeX << " and " << nodeY << endl;
-            TreeNode::caTuple cas1 = TreeNode::cas(randTree.nodes[nodeX], randTree.nodes[nodeY]);
-            TreeNode::caTuple cas2 = TreeNode::naiveCas(randTree.nodes[nodeX], randTree.nodes[nodeY]);
+            ExpensiveTreeNode::caTuple cas1 = ExpensiveTreeNode::cas(randTree.nodes[nodeX], randTree.nodes[nodeY]);
+            ExpensiveTreeNode::caTuple cas2 = ExpensiveTreeNode::naiveCas(randTree.nodes[nodeX], randTree.nodes[nodeY]);
 
             std::cout << i << "." << j << ") LCA of " << nodeX << ", " << nodeY << ": "<< cas1.lca->nodeId << " and " << cas2.lca->nodeId << std::endl;
             std::cout << "    CA_X: "<< cas1.ca_x->nodeId << " and " << cas2.ca_x->nodeId << std::endl;
