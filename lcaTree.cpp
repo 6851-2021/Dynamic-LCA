@@ -36,8 +36,8 @@ int intpow(int x, int n) {
 
 void TreeNode::preprocess() {
     assignSubtreeSizes(false); // Subtree sizes based on uncompressed values
-    assignApex();
-    assignLevels();
+    assignApex(true);
+    assignLevels(0);
     assignRoot(this);
 
     compressTree(true);
@@ -50,9 +50,9 @@ void TreeNode::preprocess() {
 
 void TreeNode::recompress() {
     this->assignSubtreeSizes(false); //with compressed = false
-    this->assignApex();
+    this->assignApex(true);
     isApex = true; // Treat the current node as the "root", even though it could have a parent
-    this->assignLevels();
+    // this->assignLevels();
 
     this->compressTree(true); //TODO: update with compressed = true for subtreeSizes
     if (this->parent) {
@@ -88,15 +88,21 @@ int TreeNode::assignSubtreeSizes(bool useCompressed) {
     return subtreeSize;
 }
 
-// A node is apex if it is not a a heavy child
-void TreeNode::assignApex() {
-    if (parent) {
-        isApex = (subtreeSize * 2 <= uncompressedParent->subtreeSize);
-    } else {
+// A node is apex if it is not a heavy child
+void TreeNode::assignApex(bool isRoot) {
+    // Assign apex based on subtreeSize
+    if (isRoot) {
         isApex = true;
+    } else {
+        isApex = (subtreeSize * 2 <= uncompressedParent->subtreeSize);
     }
 
-    for (TreeNode* child : uncompressedChildren) {child->assignApex();}
+    // Update parent's heavyChild pointer if necessary
+    if (!isApex) {
+        uncompressedParent->heavyChild = this;
+    }
+
+    for (TreeNode* child : uncompressedChildren) {child->assignApex(false);}
 }
 
 void TreeNode::assignRoot(TreeNode* node) {
@@ -225,6 +231,7 @@ void TreeNode::add_leaf(TreeNode* leaf) {
     uncompressedChildren.push_back(leaf);
     leaf->uncompressedParent = this;
     leaf->root = root;
+    leaf->uncompressedLevel = uncompressedLevel + 1;
 
     // Set leaf path
     leaf->isApex = true;
@@ -258,6 +265,7 @@ void TreeNode::add_leaf(TreeNode* leaf) {
     }
 
     // Recompress last "broken" node and update ancestor tables
+    // cout << "--> Adding leaf " << leaf->nodeId << " to " << nodeId << ": updating subtree " << getId(currNode) << endl;
     currNode->recompress();
     currNode->fillAllAncestors();
     currNode->setPreprocessedFlag();
@@ -270,23 +278,56 @@ void TreeNode::add_leaf(TreeNode* leaf) {
 
 
 TreeNode* TreeNode::lca(TreeNode* nodeX, TreeNode* nodeY) {
+    TreeNode::caTuple allCas = cas(nodeX, nodeY);
+    return allCas.lca;
+}
+
+TreeNode::caTuple TreeNode::cas(TreeNode* nodeX, TreeNode* nodeY) {
     if (!nodeX->isPreprocessed or !nodeY->isPreprocessed) {
         std::cout << "Error: Tree must be preprocessed before calling LCA." << std::endl;
         exit(-1);
     } else if (nodeX == nodeY) {
-        return nodeX;
+        TreeNode::caTuple result = {/* lca = */  nodeX,
+                                    /* ca_x = */ nodeX,
+                                    /* ca_y = */ nodeX};
+        return result;
     }
 
-    TreeNode::caTuple cas = lcaCompressed(nodeX, nodeY);
-    // std::cout << "--------------\n after compressed: " << getId(cas.lca) << ", " << getId(cas.ca_x) << ", " << getId(cas.ca_y) << std::endl;
+    TreeNode::caTuple compressedCas = casCompressed(nodeX, nodeY);
+    // std::cout << "--------------\n after compressed: " << getId(compressedCas.lca) << ", " << getId(compressedCas.ca_x) << ", " << getId(compressedCas.ca_y) << std::endl;
             
-    TreeNode* b_x = (cas.ca_x->inPath(cas.lca)) ?
-                     cas.ca_x : cas.ca_x->uncompressedParent;
-    TreeNode* b_y = (cas.ca_y->inPath(cas.lca)) ?
-                     cas.ca_y : cas.ca_y->uncompressedParent;
-    TreeNode* result = ((b_x->uncompressedLevel < b_y->uncompressedLevel) ?
+    // Find LCA from compressed CAs
+    TreeNode* b_x = (compressedCas.ca_x->inPath(compressedCas.lca)) ?
+                     compressedCas.ca_x : compressedCas.ca_x->uncompressedParent;
+    TreeNode* b_y = (compressedCas.ca_y->inPath(compressedCas.lca)) ?
+                     compressedCas.ca_y : compressedCas.ca_y->uncompressedParent;
+    TreeNode* lca = ((b_x->uncompressedLevel < b_y->uncompressedLevel) ?
                         b_x : b_y);
 
+    // Find CA_X from compressed CAs
+    TreeNode* ca_x;
+    if (lca != b_x) {
+        // In this case, lca must have a heavy child (cannot be NULL)
+        ca_x = lca->heavyChild;
+    } else if (lca == b_x && lca != compressedCas.ca_x) {
+        ca_x = compressedCas.ca_x;
+    } else {
+        // ie. lca == b_x && lca == compressedCas.ca_x
+        ca_x = nodeX;
+    }
+
+    // Symmetrically, find CA_Y from compressed CAs
+    TreeNode* ca_y;
+    if (lca != b_y) {
+        ca_y = lca->heavyChild;
+    } else if (lca == b_y && lca != compressedCas.ca_y) {
+        ca_y = compressedCas.ca_y;
+    } else {
+        ca_y = nodeY;
+    }
+
+    // Return result
+    TreeNode::caTuple result = {lca, ca_x, ca_y};
     return result;
 }
 
@@ -299,7 +340,7 @@ bool TreeNode::inPath(TreeNode* apex) {
 }
 
 // Note: nodeX cannot be equal to nodeY
-TreeNode::caTuple TreeNode::lcaCompressed(TreeNode* nodeX, TreeNode* nodeY) {
+TreeNode::caTuple TreeNode::casCompressed(TreeNode* nodeX, TreeNode* nodeY) {
     assert(nodeX != nodeY);
 
     if (!nodeX->isPreprocessed or !nodeY->isPreprocessed) {
@@ -398,8 +439,14 @@ bool TreeNode::isAncestorOf(TreeNode* node) {
 }
 
 TreeNode* TreeNode::naiveLca(TreeNode* nodeX, TreeNode* nodeY) {
+    TreeNode::caTuple allCas = naiveCas(nodeX, nodeY);
+    return(allCas.lca);
+}
+
+TreeNode::caTuple TreeNode::naiveCas(TreeNode* nodeX, TreeNode* nodeY) {
     if (nodeX == nodeY) {
-        return nodeX;
+        TreeNode::caTuple toReturn = {nodeX, nodeX, nodeX};
+        return(toReturn);
     }
 
     // std::deque<TreeNode*> xPathComp;
@@ -462,7 +509,11 @@ TreeNode* TreeNode::naiveLca(TreeNode* nodeX, TreeNode* nodeY) {
     }
 
     TreeNode* lca = xPath[i-1];
-    return(lca);
+    TreeNode* ca_x = i < xPath.size() ? xPath[i] : xPath[xPath.size() - 1];
+    TreeNode* ca_y = i < yPath.size() ? yPath[i] : yPath[yPath.size() - 1];
+    TreeNode::caTuple toReturn = {lca, ca_x, ca_y};
+    
+    return (toReturn);
 }
 
 ///////////////////////////
@@ -477,6 +528,7 @@ TreeNode::TreeNode(std::string id) {
     subtreeSize = 0;
     dynamicSubtreeSize = 0;
     isApex = false;
+    heavyChild = NULL;
     uncompressedLevel = -1;
     isPreprocessed = false;
 
@@ -524,7 +576,7 @@ void TreeNode::print(int level) {
               << "parentId = " << getId(parent) << ", "
               << "uncompparentId = " << getId(uncompressedParent) << ", "
               << "level = " << uncompressedLevel << ", "
-              << "preprocessed = " << isPreprocessed << ")"
+              << "heavyChild = " << getId(heavyChild) << ")"
               << std::endl;
     for (TreeNode* child : uncompressedChildren) {
         child->print(level + 1);

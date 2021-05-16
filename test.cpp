@@ -103,8 +103,13 @@ treeAndNodes generateIncrementalTree(int numNodes) {
     return toReturn;
 }
 
+std::string getId1(TreeNode* node) {
+    if (node) {return (node->nodeId);}
+    else {return "NULL";}
+}
+
 void testAddNode() {
-    int numNodes = 100;
+    int numNodes = 10000;
 
     for (int i = 0; i < 50; ++i)
     {
@@ -115,67 +120,31 @@ void testAddNode() {
         // randTree.tree->printIntervals(0);
         // cout << "*** ANCESTORS ***" << endl;
         // randTree.tree->printAncestors(0);
-        for (int j = 0; j < 100; ++j)
+        for (int j = 0; j < 10000; ++j)
         {
             int nodeX = rand() % numNodes;
             int nodeY = rand() % numNodes;
 
             // cout << "Computing LCA of " << nodeX << " and " << nodeY << endl;
-            TreeNode* lca1 = TreeNode::lca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
-            TreeNode* lca2 = TreeNode::naiveLca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
-            std::cout << i << "." << j << ") LCA of " << nodeX << ", " << nodeY << ": "<< lca1->nodeId << " and " << lca2->nodeId << std::endl;
+            TreeNode::caTuple cas1 = TreeNode::cas(randTree.nodes[nodeX], randTree.nodes[nodeY]);
+            TreeNode::caTuple cas2 = TreeNode::naiveCas(randTree.nodes[nodeX], randTree.nodes[nodeY]);
+
+            std::cout << i << "." << j << ") LCA of " << nodeX << ", " << nodeY << ": "<< cas1.lca->nodeId << " and " << cas2.lca->nodeId << std::endl;
+            std::cout << "    CA_X: "<< cas1.ca_x->nodeId << " and " << cas2.ca_x->nodeId << std::endl;
+            std::cout << "    CA_Y: "<< getId1(cas1.ca_y) << " and " << getId1(cas2.ca_y) << std::endl;
     
-            assert(lca1 != NULL);
-            assert(lca1 == lca2);
+            assert(cas1.lca  != NULL);
+            assert(cas1.ca_x != NULL);
+            assert(cas1.ca_y != NULL);
+            assert(cas1.lca  == cas2.lca);
+            assert(cas1.ca_x == cas2.ca_x);
+            assert(cas1.ca_y == cas2.ca_y);
         }
 
         deleteTree(randTree.tree);
     }    
 }
 
-void smallTestAddNode() {
-    int numNodes = 6;
-    for (int i = 0; i < 1; ++i)
-    {
-        std::cout << "Checking tree " << i << std::endl;
-        treeAndNodes randTree = generateRandTree(numNodes);//treeFromSeq(seq);
-        std::cout << "    Generated tree " << i << std::endl;
-        randTree.tree->print();
-        randTree.tree->preprocess();
-        randTree.tree->printIntervals(0);
-        //randTree.tree->printAncestors(0);
-
-        TreeNode* newnode = new TreeNode("NEWNODE");
-        randTree.nodes[0]->add_leaf(newnode);
-
-        for (int j = 0; j < 1; ++j)
-        {
-            int nodeX = rand() % numNodes;
-            int nodeY = rand() % numNodes;
-            //std::cout << "Computing LCA of " << nodeX << ", " << nodeY << std::endl;
-            TreeNode* lca1 = TreeNode::lca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
-            TreeNode* lca2 = TreeNode::naiveLca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
-            std::cout << i << "." << j << ") LCA of " << nodeX << ", " << nodeY << ": "<< lca1->nodeId << " and " << lca2->nodeId << std::endl;
-    
-            assert(lca1 != NULL);
-            assert(lca1 == lca2);
-        }
-
-
-        TreeNode* leaf = getRandLeaf(randTree.tree);
-        cout << "Randomly chose leaf: " << leaf->nodeId << endl;
-        leaf = getRandLeaf(randTree.tree);
-        cout << "Randomly chose leaf: " << leaf->nodeId << endl;
-        leaf = getRandLeaf(randTree.tree);
-        cout << "Randomly chose leaf: " << leaf->nodeId << endl;
-
-    
-        // deleteTree(randTree.tree);
-        for (TreeNode* node : randTree.nodes) {
-            delete node;
-        }
-    }
-}
 int main(){
     //smallStaticLCA();
     // testRandTree();

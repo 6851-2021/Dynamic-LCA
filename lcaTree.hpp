@@ -29,6 +29,7 @@ class TreeNode {
         int dynamicSubtreeSize; // dynamically updated subtreeSize
 
         bool isApex;
+        TreeNode* heavyChild;
         bool isPreprocessed;
 
         std::list<TreeNode*> uncompressedChildren;
@@ -56,7 +57,7 @@ class TreeNode {
         void preprocess();
         void setPreprocessedFlag();
         int assignSubtreeSizes(bool useCompressed); //Returns size of tree
-        void assignApex();
+        void assignApex(bool isRoot);
         void assignRoot(TreeNode* node);
         void compressTree(bool isRoot = false);
         bool inPath(TreeNode* apex);
@@ -71,15 +72,17 @@ class TreeNode {
         void fillAncestorTable();
         void printAncestors(int level = 0);
 
-        void assignLevels(int level = 0);
+        void assignLevels(int level);
         
         void recompress();
         void add_leaf(TreeNode* leaf);
 
         // Query
         static TreeNode* lca(TreeNode* nodeA, TreeNode* nodeB);
-        static caTuple lcaCompressed(TreeNode* nodeX, TreeNode* nodeY);
-        static TreeNode* naiveLca(TreeNode* nodeA, TreeNode* nodeB);
+        static caTuple cas(TreeNode* nodeA, TreeNode* nodeB);
+        static caTuple casCompressed(TreeNode* nodeX, TreeNode* nodeY);
+        static TreeNode* naiveLca(TreeNode* nodeX, TreeNode* nodeY);
+        static caTuple naiveCas(TreeNode* nodeA, TreeNode* nodeB);
 
         bool isAncestorOf(TreeNode* node);
     private:
