@@ -8,6 +8,9 @@ DEPS = lcaMultilevel.hpp generateRandTrees.hpp lcaTree.hpp
 lca: test.o lcaMultilevel.o generateRandTrees.o lcaTree.o
 	$(CC) -o lca test.o lcaMultilevel.o generateRandTrees.o lcaTree.o
 
+demo: demo.o lcaMultilevel.o generateRandTrees.o lcaTree.o
+	$(CC) -o demo demo.o lcaMultilevel.o generateRandTrees.o lcaTree.o
+
 timing: timingTest.o lcaMultilevel.o generateRandTrees.o lcaTree.o
 	$(CC) -o timing timingTest.o lcaMultilevel.o generateRandTrees.o lcaTree.o
 

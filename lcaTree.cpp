@@ -57,8 +57,9 @@ void ExpensiveTreeNode::recompress() {
     assignSubtreeSizes(true);
     if (parent) {
         // assign this buffered interval <- [Q(u), Q(u) + cs(v)^e]
-        startBuffered = parent->largestChildEndBuffer; //TODO: Check off by 1 error?
-        endBuffered = parent->largestChildEndBuffer + c * pow(subtreeSize, e);
+        startBuffered = parent->largestChildEndBuffer;
+        endBuffered = parent->largestChildEndBuffer +
+                      c * pow(subtreeSize, e);
         parent->largestChildEndBuffer = endBuffered;
 
         // assign fat preordering to children

@@ -15,7 +15,7 @@ using std::endl;
 struct multilevelTreeAndNodes {
     MultilevelTreeNode* tree;
     std::vector<MultilevelTreeNode*> nodes;
-}; //TODO: Figure out correct syntax (cf. caTuple)
+};
 
 
 void testStaticTree() {
@@ -149,20 +149,17 @@ void testMultilevelSmall() {
 }
 
 void testMultilevel() {
-    int numNodes = 1000;
+    int numNodes = 100;
 
-    for (int i = 0; i < 1000; ++i)
+    for (int i = 0; i < 100; ++i)
     {
         multilevelTreeAndNodes randTree = generateIncrementalMultilevelTree(numNodes);
-        cout << "---------------Generated tree" << endl;
         randTree.tree->print();
         for (int j = 0; j < 1000; ++j)
         {
             int nodeX = rand() % numNodes;
             int nodeY = rand() % numNodes;
 
-            cout << "--------" << endl;
-            cout << "Computing LCA of " << nodeX << " and " << nodeY << endl;
             MultilevelTreeNode* lca1 = MultilevelTreeNode::lca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
             MultilevelTreeNode* lca2 = MultilevelTreeNode::naiveLca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
 

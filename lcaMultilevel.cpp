@@ -106,19 +106,22 @@ std::string nodeData(MultilevelTreeNode* node) {
 }
 
 
-void MultilevelTreeNode::print(int level) {
+void MultilevelTreeNode::print(int level, bool details) {
     for (int i = 0; i < level; i++){
         std::cout << "    ";
     }
 
-    std::cout << "Node " << data
-              << "(twoSubtreeRoot = " << nodeData(twoSubtreeRoot) << ", "
-              << "twoSubtreeSize = " << twoSubtreeSize << ", "
-              << "summaryNode = " << summaryNode << ", "
-              << "ancestorWord = " << std::bitset<32>(ancestorWord) << ")"
-              << std::endl;
+    std::cout << "Node " << data;
+    if (details){
+        std:: cout << "(twoSubtreeRoot = " << nodeData(twoSubtreeRoot) << ", "
+                   << "twoSubtreeSize = " << twoSubtreeSize << ", "
+                   << "summaryNode = " << summaryNode << ", "
+                   << "ancestorWord = " << std::bitset<32>(ancestorWord) << ")";
+    }
+    std::cout << std::endl;
+
     for (MultilevelTreeNode* child : children) {
-        child->print(level + 1);
+        child->print(level + 1, details);
     }
 }
 

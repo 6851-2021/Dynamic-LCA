@@ -23,7 +23,7 @@ class MultilevelTreeNode {
 
         /* Standard Tree Operations */
         MultilevelTreeNode(std::string id);
-        void print(int level = 0);
+        void print(int level = 0, bool details = false);
         void deleteTree();
 
         /* Dynamic LCA */
