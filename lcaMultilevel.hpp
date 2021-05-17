@@ -1,10 +1,10 @@
 #ifndef LCAMULTILEVEL_H
 #define LCAMULTILEVEL_H
-#include "lcaTree.hpp"
 
 #include <list>
 #include <vector>
 #include <string>
+#include "lcaTree.hpp"
 
 // Represents a node in T_2
 class MultilevelTreeNode {

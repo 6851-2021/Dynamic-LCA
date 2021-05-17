@@ -13,7 +13,7 @@ void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
         leaf->twoSubtreeRoot = leaf;
         leaf->twoSubtreeSize = 1;
         leaf->summaryNode = NULL;
-        leaf->intToSubtreeNode.push_back(leaf);
+        // leaf->intToSubtreeNode already holds leaf - it does not need to be modified
         leaf->ancestorWord = 1;
     } else {
         // Case 2: x-hat was not previously full
@@ -21,7 +21,6 @@ void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
 
         // Everything is 0 indexed, so do this operation before incrememnting subtreeSize
         leaf->ancestorWord = ancestorWord + (1 << (twoSubtreeRoot->twoSubtreeSize));
-        std::cout << "Adding leaf with ancestor word ancestor " << std::bitset<32>(leaf->ancestorWord) << std::endl;
         twoSubtreeRoot->intToSubtreeNode.push_back(leaf);
 
         leaf->twoSubtreeRoot = twoSubtreeRoot;
@@ -30,7 +29,7 @@ void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
 
         if (twoSubtreeRoot->twoSubtreeSize == twoSubtreeMaxSize) {
             // If subtree is now full...
-            ExpensiveTreeNode* currSummary = new ExpensiveTreeNode(twoSubtreeRoot->data);
+            ExpensiveTreeNode* currSummary = new ExpensiveTreeNode(twoSubtreeRoot->data, twoSubtreeRoot);
             twoSubtreeRoot->summaryNode = currSummary;
             currSummary->preprocess(); //TODO: fix
             if (twoSubtreeRoot->parent) {
@@ -43,13 +42,38 @@ void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
 }
 
 MultilevelTreeNode* MultilevelTreeNode::lca(MultilevelTreeNode* nodeX, MultilevelTreeNode* nodeY) {
-    if (nodeX->twoSubtreeRoot != nodeY->twoSubtreeRoot) {
-        //Make them the same...
-        std::cout << "ERROR: NOT YET IMPLEMENTED " << std::endl;
-        return NULL;
+    MultilevelTreeNode* x = nodeX;
+    MultilevelTreeNode* y = nodeY;
+
+    if (x->twoSubtreeRoot != y->twoSubtreeRoot) {
+        // If x and y do not belong to the same 2-subtree, 
+        // use the summary tree to change x and y so that they do
+
+        // If x-hat is not full, set x to full parent 
+        if (x->twoSubtreeRoot->twoSubtreeSize < twoSubtreeMaxSize) {
+            x = x->twoSubtreeRoot->parent;
+        }
+
+        // If y-hat is not full, set y to full parent
+        if (y->twoSubtreeRoot->twoSubtreeSize < twoSubtreeMaxSize) {
+            y = y->twoSubtreeRoot->parent;
+        }
+
+        // LCA on summary tree
+        ExpensiveTreeNode* xSummary = x->twoSubtreeRoot->summaryNode;
+        ExpensiveTreeNode* ySummary = y->twoSubtreeRoot->summaryNode;
+        ExpensiveTreeNode::caTuple summaryCas = ExpensiveTreeNode::cas(xSummary, ySummary);
+
+        if (summaryCas.lca != summaryCas.ca_x) {
+            x = summaryCas.ca_x->associatedTwoSubtree->parent;
+        }
+        if (summaryCas.lca != summaryCas.ca_y) {
+            y = summaryCas.ca_y->associatedTwoSubtree->parent;
+        }
     }
+
     // LCA query on the 2-subtree
-    return lcaWithinSubtree(nodeX, nodeY);
+    return lcaWithinSubtree(x, y);
 }
 
 MultilevelTreeNode* MultilevelTreeNode::lcaWithinSubtree(MultilevelTreeNode* nodeX, MultilevelTreeNode* nodeY) {
@@ -61,13 +85,6 @@ MultilevelTreeNode* MultilevelTreeNode::lcaWithinSubtree(MultilevelTreeNode* nod
 
     unsigned int differences = nodeX->ancestorWord & nodeY->ancestorWord;
     int msb = 31-__builtin_clz(differences);
-    std::cout << "    MSB: " << msb << std::endl; 
-    std::cout << "    intToSubtree: [";
-    for (MultilevelTreeNode* node : nodeX->twoSubtreeRoot->intToSubtreeNode) {
-        std::cout << node->data << ", ";
-    }
-    std::cout << "]" << std::endl;
-    std::cout << "    Returning node: " << nodeX->twoSubtreeRoot->intToSubtreeNode[msb]->data << std::endl; 
 
     return (nodeX->twoSubtreeRoot->intToSubtreeNode[msb]);
 }

@@ -79,15 +79,11 @@ multilevelTreeAndNodes generateIncrementalMultilevelTree(int numNodes) {
         nodes[i] = new MultilevelTreeNode(std::to_string(i));
     }
 
-    cout << "Made things" << endl;
     MultilevelTreeNode* root = nodes[parents[parents.size() - 1]];
     // root->preprocess();
 
     for (int i = leaves.size() - 1; i >= 0; --i) {
-        cout << "---" << endl;
-        cout << "Adding leaf number " << i << " (which has ID " << leaves[i] <<") to node " << parents[i] << endl;
         nodes[parents[i]]->add_leaf(nodes[leaves[i]]);
-        root->print();
     }
     
     multilevelTreeAndNodes toReturn;
@@ -154,18 +150,19 @@ void testMultilevelSmall() {
 }
 
 void testMultilevel() {
-    int numNodes = 32;
+    int numNodes = 100;
 
-    for (int i = 0; i < 1000; ++i)
+    for (int i = 0; i < 100; ++i)
     {
         multilevelTreeAndNodes randTree = generateIncrementalMultilevelTree(numNodes);
         cout << "---------------Generated tree" << endl;
         randTree.tree->print();
-        for (int j = 0; j < 1000; ++j)
+        for (int j = 0; j < 100; ++j)
         {
             int nodeX = rand() % numNodes;
             int nodeY = rand() % numNodes;
 
+            cout << "--------" << endl;
             cout << "Computing LCA of " << nodeX << " and " << nodeY << endl;
             MultilevelTreeNode* lca1 = MultilevelTreeNode::lca(randTree.nodes[nodeX], randTree.nodes[nodeY]);
             MultilevelTreeNode* lca2 = MultilevelTreeNode::naiveLca(randTree.nodes[nodeX], randTree.nodes[nodeY]);

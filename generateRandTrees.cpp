@@ -8,9 +8,6 @@ using namespace std;
 vector<vector<int>> randInsertionSeq(int numNodes) {
     treeAndNodes randTree = generateRandTree(numNodes);
     vector<vector<int>> insertions = randInsertionsFromTree(randTree.tree);
-    for(ExpensiveTreeNode* node : randTree.nodes){
-        delete node;
-    }
     return insertions;
 }
 
@@ -49,7 +46,7 @@ void assignChildrenDFS(int currNode, vector<ExpensiveTreeNode*> nodes, vector<ve
     discovered[currNode] = true;
     for (int childNode : adjList[currNode]) {
         if (!discovered[childNode]) {
-            nodes[currNode]->addChild(nodes[childNode]);
+            nodes[currNode]->addLeafNoPreprocessing(nodes[childNode]);
             assignChildrenDFS(childNode, nodes, adjList, discovered);
         }
     }
@@ -124,7 +121,7 @@ treeAndNodes treeFromSeq(vector<int> seq) {
 }
 
 void deleteTree(ExpensiveTreeNode* node) {
-    for (ExpensiveTreeNode* child : node->children) {
+    for (ExpensiveTreeNode* child : node->uncompressedChildren) {
         deleteTree(child);
     }
     delete node;
