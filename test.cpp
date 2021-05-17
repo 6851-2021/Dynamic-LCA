@@ -12,10 +12,10 @@
 using std::cout;
 using std::endl;
 
-typedef struct multilevelTreeAndNodes {
+struct multilevelTreeAndNodes {
     MultilevelTreeNode* tree;
     std::vector<MultilevelTreeNode*> nodes;
-} multilevelTreeAndNodes; //TODO: Figure out correct syntax (cf. caTuple)
+}; //TODO: Figure out correct syntax (cf. caTuple)
 
 
 void testStaticTree() {
@@ -80,7 +80,6 @@ multilevelTreeAndNodes generateIncrementalMultilevelTree(int numNodes) {
     }
 
     MultilevelTreeNode* root = nodes[parents[parents.size() - 1]];
-    // root->preprocess();
 
     for (int i = leaves.size() - 1; i >= 0; --i) {
         nodes[parents[i]]->add_leaf(nodes[leaves[i]]);
@@ -150,14 +149,14 @@ void testMultilevelSmall() {
 }
 
 void testMultilevel() {
-    int numNodes = 100;
+    int numNodes = 1000;
 
-    for (int i = 0; i < 100; ++i)
+    for (int i = 0; i < 1000; ++i)
     {
         multilevelTreeAndNodes randTree = generateIncrementalMultilevelTree(numNodes);
         cout << "---------------Generated tree" << endl;
         randTree.tree->print();
-        for (int j = 0; j < 100; ++j)
+        for (int j = 0; j < 1000; ++j)
         {
             int nodeX = rand() % numNodes;
             int nodeY = rand() % numNodes;

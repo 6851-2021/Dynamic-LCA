@@ -464,6 +464,10 @@ void ExpensiveTreeNode::init(std::string id) {
 
 }
 
+// ExpensiveTreeNode::ExpensiveTreeNode* ExpensiveTreeNode::createRoot(std::string id) {
+//     ExpensiveTreeNode::
+// }
+
 ExpensiveTreeNode::ExpensiveTreeNode(std::string id) {
     init(id);
 }
@@ -471,6 +475,7 @@ ExpensiveTreeNode::ExpensiveTreeNode(std::string id) {
 ExpensiveTreeNode::ExpensiveTreeNode(std::string id, MultilevelTreeNode* twoSubtree) {
     init(id);
     associatedTwoSubtree = twoSubtree;
+    preprocess();
 }
 
 

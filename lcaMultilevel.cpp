@@ -2,6 +2,12 @@
 #include <iostream>
 #include <bitset>
 #include <deque>
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::microseconds;
+using std::chrono::nanoseconds;
+
 
 void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
     children.push_back(leaf);
@@ -73,7 +79,9 @@ MultilevelTreeNode* MultilevelTreeNode::lca(MultilevelTreeNode* nodeX, Multileve
     }
 
     // LCA query on the 2-subtree
-    return lcaWithinSubtree(x, y);
+    MultilevelTreeNode* lcaNode = lcaWithinSubtree(x, y);
+
+    return lcaNode;
 }
 
 MultilevelTreeNode* MultilevelTreeNode::lcaWithinSubtree(MultilevelTreeNode* nodeX, MultilevelTreeNode* nodeY) {
@@ -83,7 +91,7 @@ MultilevelTreeNode* MultilevelTreeNode::lcaWithinSubtree(MultilevelTreeNode* nod
         return nodeX;
     }
 
-    unsigned int differences = nodeX->ancestorWord & nodeY->ancestorWord;
+    int differences = nodeX->ancestorWord & nodeY->ancestorWord;
     int msb = 31-__builtin_clz(differences);
 
     return (nodeX->twoSubtreeRoot->intToSubtreeNode[msb]);

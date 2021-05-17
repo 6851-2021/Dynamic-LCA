@@ -6,31 +6,53 @@
 #include <string>
 #include "lcaTree.hpp"
 
-// Represents a node in T_2
+/*
+ * MultilevelTreeNode
+ * Represents the full tree partitioned into "2-subtrees" (for indirection)
+ *   Each 2-subtree has log n nodes (which we can exaggerate to the number of
+ *   bits in a RAM word)
+ */
 class MultilevelTreeNode {
     public:
-        static const int twoSubtreeMaxSize = 32; // Number of bits in a RAM word
-        std::string data;
-        int twoSubtreeSize;
-        MultilevelTreeNode* twoSubtreeRoot; //ie. the root of x-hat
-        ExpensiveTreeNode* summaryNode;
+        static const int twoSubtreeMaxSize = 32;
         
-        unsigned int ancestorWord;
-        std::vector<MultilevelTreeNode*> intToSubtreeNode; //Only initialized for roots of subtrees
-
+        /* Standard Tree Variables */
+        std::string data;
         MultilevelTreeNode* parent;
         std::list<MultilevelTreeNode*> children;
 
-        //TODO: constructor from existing tree - MultilevelTreeNode(...)
+        /* Standard Tree Operations */
         MultilevelTreeNode(std::string id);
+        void print(int level = 0);
+        void deleteTree();
+
+        /* Dynamic LCA */
         void add_leaf(MultilevelTreeNode* leaf);
         static MultilevelTreeNode* lca(MultilevelTreeNode* nodeX, MultilevelTreeNode* nodeY);
         static MultilevelTreeNode* naiveLca(MultilevelTreeNode* nodeX, MultilevelTreeNode* nodeY);
 
-        void print(int level = 0);
-        void deleteTree();
-    private:
+    private:        
+        /* Variables for 2-subtrees */
+        MultilevelTreeNode* twoSubtreeRoot; // Root of this node's 2-subtree
+        int twoSubtreeSize; // Only set for the root of a 2-subtree
+        ExpensiveTreeNode* summaryNode; // Only set for the root of a 2-subtree
+        
+        /*-------------------------*/
+        /*  LCA within a 2-subtree */
+        /*-------------------------*/
+
+        /* Each node in a 2-subtree is assigned an integer. 
+         * This vector gives the correspondence between integers and nodes.
+         * It is only set for the root of a 2-subtree. */
+        std::vector<MultilevelTreeNode*> intToSubtreeNode;
+
+        /* The ith bit is 1 iff the node with ID i is an ancestor */
+        unsigned int ancestorWord;
+
+        /* Given two nodes in the same 2-subtree, return their LCA */
         static MultilevelTreeNode* lcaWithinSubtree(MultilevelTreeNode* nodeX, MultilevelTreeNode* nodeY);
+
+
 };
 
 #endif
