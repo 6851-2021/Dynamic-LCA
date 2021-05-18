@@ -4,7 +4,7 @@ This repo contains a partial implementation of [Gabow's data structure](https://
 - O(1) worse-case LCA queries
 - O(log n) amortized insertion of leaves
 
-See `writeup.pdf` for more details (including runtime analysis).
+See `writeup.pdf` for more details (including performance analysis).
 
 ## File Structure
 - `lcaTree.hpp/cpp`: Defines the class `ExpensiveTreeNode`, which supports O(1) LCA queries and O(log^2 n) amortized insertion of leaves
