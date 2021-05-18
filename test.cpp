@@ -5,9 +5,23 @@
 #include "generateRandTrees.hpp"
 #include "lcaMultilevel.hpp"
 
-/////////////////////
-//// Example Run ////
-/////////////////////
+/*---------------------------*/
+/*   Tests for Correctness   */
+/*---------------------------*/
+
+/* Each test generates a random sequence of "add_leaf" operations
+ * using generateRandTrees.hpp. A tree is constructed based on this sequence
+ * in one of three ways:
+ * 1. Static: The tree is constructed and then preprocessed after
+ * 2. Expensive Dynamic: The tree is built using ExpensiveTreeNode::add_leaf
+ *    operations so that the data structure is maintained during construction
+ * 3. Multilevel Dynamic: The tree is built using MultilevelTreeNode::add_leaf
+ *    operations (similar to #2, but with indirection)
+ *
+ * A random sequence of LCA queries is generated, and the result of
+ * of Gabow's O(1) LCA algorithm is compared to the result of a naive
+ * linear-time LCA algorithm.
+ */
 
 using std::cout;
 using std::endl;
@@ -15,7 +29,7 @@ using std::vector;
 
 
 void testStaticTree() {
-    int numNodes = 100;
+    int numNodes = 1000;
     for (int i = 0; i < 100; ++i)
     {
         treeAndNodes<ExpensiveTreeNode> randTree = generateStaticTree(numNodes);
@@ -37,24 +51,17 @@ void testStaticTree() {
     cout << "Passed 'static' tests" << endl;
 }
 
-void testAddNode() {
-    int numNodes = 100;
+void testExpensiveIncremental() {
+    int numNodes = 1000;
 
     for (int i = 0; i < 100; ++i)
     {
         treeAndNodes<ExpensiveTreeNode> randTree = generateIncrementalTree(numNodes);
-        // cout << "*** UNCOMPRESSED TREE ***" << endl;
-        // randTree.tree->print();
-        // cout << "*** COMPRESSED DYNAMIC TREE ***" << endl;
-        // randTree.tree->printIntervals(0);
-        // cout << "*** ANCESTORS ***" << endl;
-        // randTree.tree->printAncestors(0);
         for (int j = 0; j < 100; ++j)
         {
             int nodeX = rand() % numNodes;
             int nodeY = rand() % numNodes;
 
-            // cout << "Computing LCA of " << nodeX << " and " << nodeY << endl;
             ExpensiveTreeNode::caTuple cas1 = ExpensiveTreeNode::cas(randTree.nodes[nodeX], randTree.nodes[nodeY]);
             ExpensiveTreeNode::caTuple cas2 = ExpensiveTreeNode::naiveCas(randTree.nodes[nodeX], randTree.nodes[nodeY]);
 
@@ -74,12 +81,11 @@ void testAddNode() {
 }
 
 void testMultilevel() {
-    int numNodes = 100;
+    int numNodes = 1000;
 
     for (int i = 0; i < 100; ++i)
     {
         treeAndNodes<MultilevelTreeNode> randTree = generateIncrementalMultilevelTree(numNodes);
-        // randTree.tree->print();
         for (int j = 0; j < 1000; ++j)
         {
             int nodeX = rand() % numNodes;
@@ -94,13 +100,13 @@ void testMultilevel() {
             assert(lca1  == lca2);
         }
 
-        randTree.tree->deleteTree();
+        randTree.tree->deleteNode();
     }
     cout << "Passed 'multilevel' tests" << endl;
 }
 int main(){
     testStaticTree();
-    testAddNode();
+    testExpensiveIncremental();
     testMultilevel();
     return 0;
 }

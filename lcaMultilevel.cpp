@@ -20,8 +20,7 @@ void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
         // Case 2: subtree containing x was not previously full
         // Add `leaf` to this subtree & update root->twoSubtreeSize
 
-        // Everything is 0 indexed, so do this operation before incrememnting subtreeSize
-        unsigned long long curr_bit = 1; // Immediately doing (1 << ...) will treat 1 as 32 bits
+        unsigned long long curr_bit = 1; // Note: immediately doing (1 << ...) will treat 1 as 32 bits
         leaf->ancestorWord = ancestorWord + (curr_bit << twoSubtreeRoot->twoSubtreeSize);
         twoSubtreeRoot->intToSubtreeNode.push_back(leaf);
 
@@ -30,7 +29,7 @@ void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
 
 
         if (twoSubtreeRoot->twoSubtreeSize == twoSubtreeMaxSize) {
-            // If subtree is now full...
+            // If the subtree is now full:
             ExpensiveTreeNode* currSummary = new ExpensiveTreeNode(twoSubtreeRoot->data, twoSubtreeRoot);
             twoSubtreeRoot->summaryNode = currSummary;
             if (twoSubtreeRoot->parent) {
@@ -134,6 +133,7 @@ MultilevelTreeNode::MultilevelTreeNode(std::string id) {
 }
 
 // Slightly modified from ExpensiveTreeNode::naiveCas
+// The code duplication is worth the easy testing
 MultilevelTreeNode* MultilevelTreeNode::naiveLca(MultilevelTreeNode* nodeX, MultilevelTreeNode* nodeY) {
     if (nodeX == nodeY) {
         return(nodeX);
@@ -163,7 +163,7 @@ MultilevelTreeNode* MultilevelTreeNode::naiveLca(MultilevelTreeNode* nodeX, Mult
     return (lca);
 }
 
-void MultilevelTreeNode::deleteTree() {
+void MultilevelTreeNode::deleteNode() {
     if (summaryNode) {
         delete summaryNode;
     }
