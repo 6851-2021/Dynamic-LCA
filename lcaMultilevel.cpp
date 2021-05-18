@@ -169,7 +169,7 @@ void MultilevelTreeNode::deleteNode() {
     }
 
     for(MultilevelTreeNode* child : children) {
-        child->deleteTree();
+        child->deleteNode();
     }
 
     delete this;

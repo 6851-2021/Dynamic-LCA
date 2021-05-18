@@ -116,9 +116,9 @@ treeAndTiming<MultilevelTreeNode> seqToIncrementalMultilevelTree(std::vector<int
 
 int main()
 {
-    int numNodes = 100;//10000;
+    int numNodes = 10000;
 
-    int numRandTrees = 10;//100;
+    int numRandTrees = 100;
     int numIter = 10;
     int numQueries = 1000;
 
