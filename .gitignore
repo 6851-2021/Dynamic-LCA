@@ -2,5 +2,7 @@
 *.o
 *.dSYM
 lca
+demo
+timing
 
 .DS_Store

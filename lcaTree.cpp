@@ -496,10 +496,11 @@ void ExpensiveTreeNode::deleteNode() {
         parent->children.remove(this);
     }
 
-    for (ExpensiveTreeNode* child : uncompressedChildren) {
-        child->deleteNode();
+
+    while(uncompressedChildren.size() > 0) {
+        uncompressedChildren.front()->deleteNode();
     }
-    
+
     delete this;
 }
 

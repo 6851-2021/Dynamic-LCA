@@ -1,16 +1,38 @@
 #include "lcaTree.hpp"
+#include "lcaMultilevel.hpp"
 #include <vector>
 
-typedef struct treeAndNodes {
-    ExpensiveTreeNode* tree;
-    std::vector<ExpensiveTreeNode*> nodes;
-    std::vector<int> seq;
-} treeAndNodes; //TODO: Figure out correct syntax (cf. caTuple)
+using std::vector;
 
-treeAndNodes generateRandTree(int numNodes);
-treeAndNodes treeFromSeq(std::vector<int> seq);
-ExpensiveTreeNode* getRandLeaf(ExpensiveTreeNode* root);
-std::vector<std::vector<int>> randInsertionsFromTree(ExpensiveTreeNode* root);
-std::vector<std::vector<int>> randInsertionSeq(int numNodes);
-void deleteTree(ExpensiveTreeNode* node);
-//void assignChildrenDFS(int currNode, vector<ExpensiveTreeNode*> nodes, vector<vector<int>> adjList, vector<bool> discovered);
+template <typename T>
+struct treeAndNodes {
+    T* tree;
+    std::vector<T*> nodes;
+};
+
+/*
+ * Returns a representation of a sequence of "add_leaf" operations
+ * that construct a random tree.
+ *
+ * Output: [leafIds, parentIds] where leafIds and parentIds
+ *    are both vectors of ints. Starting with a tree consisting
+ *    of a single node with id parentIds[0], inserting the node
+ *    leafIds[i] as a child of parentIds[i] will produce a random
+ *    tree.
+ */
+vector<vector<int>> randInsertionSeq(int numNodes);
+
+/*
+ * Returns a random ExpensiveTreeNode tree (with no preprocessing)
+ * generated from a random Prüfer sequence, along with a vector of
+ * all nodes in the tree
+ */
+treeAndNodes<ExpensiveTreeNode> generateStaticTree(int numNodes);
+
+/* Returns a random ExpensiveTreeNode tree, built using add_leaf */
+treeAndNodes<ExpensiveTreeNode> generateIncrementalTree(int numNodes);
+
+/* Returns a random MultilevelTreeNode, built using add_leaf */
+treeAndNodes<MultilevelTreeNode> generateIncrementalMultilevelTree(int numNodes);
+
+

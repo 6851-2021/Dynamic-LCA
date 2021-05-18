@@ -23,6 +23,7 @@ struct treeAndTiming {
     int multilevelTotal;
 };
 
+/* Times the creation of a static tree */
 treeAndTiming<ExpensiveTreeNode> seqToStaticTree(std::vector<int> leaves, std::vector<int> parents) {
     auto t1 = high_resolution_clock::now();
 
@@ -58,6 +59,7 @@ treeAndTiming<ExpensiveTreeNode> seqToStaticTree(std::vector<int> leaves, std::v
 }
 
 
+/* Times the creation of an ExpensiveTreeNode tree built with add_leaf */
 treeAndTiming<ExpensiveTreeNode> seqToIncrementalTree(std::vector<int> leaves, std::vector<int> parents) {
     auto t1 = high_resolution_clock::now();
 
@@ -85,7 +87,7 @@ treeAndTiming<ExpensiveTreeNode> seqToIncrementalTree(std::vector<int> leaves, s
     return toReturn;
 }
 
-
+/* Times the creation of a MultilevelTreeNode tree built with add_leaf */
 treeAndTiming<MultilevelTreeNode> seqToIncrementalMultilevelTree(std::vector<int> leaves, std::vector<int> parents) {
     auto t1 = high_resolution_clock::now();
 
@@ -114,9 +116,9 @@ treeAndTiming<MultilevelTreeNode> seqToIncrementalMultilevelTree(std::vector<int
 
 int main()
 {
-    int numNodes = 10000;//35000;
+    int numNodes = 1000;//10000;
 
-    int numRandTrees = 100;
+    int numRandTrees = 10;//100;
     int numIter = 10;
     int numQueries = 1000;
 
@@ -180,7 +182,7 @@ int main()
         }
     }
 
-    std::cout << "---" << std::endl;
+    std::cout << "-------" << std::endl;
     std::cout << "Average Creation: " << avgCreation  * 1.0/(numIter * numRandTrees)<< std::endl;
     std::cout << "Average Static:" << avgStatic  * 1.0/(numIter * numRandTrees)<< std::endl;
     std::cout << "Average Incr:" << avgIncremental  * 1.0/(numIter * numRandTrees)<< std::endl;
@@ -190,6 +192,7 @@ int main()
     std::cout << "Average Static Query: " << avgStaticQuery* 1.0/(numIter * numRandTrees * numQueries) << std::endl;
     std::cout << "Average Incr Query: " << avgIncrementalQuery* 1.0/(numIter * numRandTrees * numQueries) << std::endl;
     std::cout << "Average Multilevel Query: " << avgMultilevelQuery * 1.0/(numIter * numRandTrees * numQueries)<< std::endl;
+    std::cout << "-------" << std::endl;
 
 
     return 0;

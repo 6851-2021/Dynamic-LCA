@@ -2,11 +2,6 @@
 #include <iostream>
 #include <bitset>
 #include <deque>
-using std::chrono::high_resolution_clock;
-using std::chrono::duration_cast;
-using std::chrono::duration;
-using std::chrono::microseconds;
-using std::chrono::nanoseconds;
 
 
 void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
@@ -14,7 +9,7 @@ void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
     leaf->parent = this;
 
     if (twoSubtreeRoot->twoSubtreeSize == twoSubtreeMaxSize) {
-        // Case 1: x-hat was full
+        // Case 1: subtree containing x was full
         // `leaf` should be made the leaf of a new subtree
         leaf->twoSubtreeRoot = leaf;
         leaf->twoSubtreeSize = 1;
@@ -22,11 +17,12 @@ void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
         // leaf->intToSubtreeNode already holds leaf - it does not need to be modified
         leaf->ancestorWord = 1;
     } else {
-        // Case 2: x-hat was not previously full
+        // Case 2: subtree containing x was not previously full
         // Add `leaf` to this subtree & update root->twoSubtreeSize
 
         // Everything is 0 indexed, so do this operation before incrememnting subtreeSize
-        leaf->ancestorWord = ancestorWord + (1 << (twoSubtreeRoot->twoSubtreeSize));
+        unsigned long long curr_bit = 1; // Immediately doing (1 << ...) will treat 1 as 32 bits
+        leaf->ancestorWord = ancestorWord + (curr_bit << twoSubtreeRoot->twoSubtreeSize);
         twoSubtreeRoot->intToSubtreeNode.push_back(leaf);
 
         leaf->twoSubtreeRoot = twoSubtreeRoot;
@@ -91,8 +87,11 @@ MultilevelTreeNode* MultilevelTreeNode::lcaWithinSubtree(MultilevelTreeNode* nod
         return nodeX;
     }
 
-    int differences = nodeX->ancestorWord & nodeY->ancestorWord;
-    int msb = 31-__builtin_clz(differences);
+    unsigned long long differences = nodeX->ancestorWord & nodeY->ancestorWord;
+
+    // Based on https://github.com/6851-2021/MostSignificantSetBit,
+    // 63-__builtin_clzll(word) calculates the MSSB
+    int msb = 63-__builtin_clzll(differences);
 
     return (nodeX->twoSubtreeRoot->intToSubtreeNode[msb]);
 }
@@ -116,7 +115,7 @@ void MultilevelTreeNode::print(int level, bool details) {
         std:: cout << "(twoSubtreeRoot = " << nodeData(twoSubtreeRoot) << ", "
                    << "twoSubtreeSize = " << twoSubtreeSize << ", "
                    << "summaryNode = " << summaryNode << ", "
-                   << "ancestorWord = " << std::bitset<32>(ancestorWord) << ")";
+                   << "ancestorWord = " << std::bitset<64>(ancestorWord) << ")";
     }
     std::cout << std::endl;
 

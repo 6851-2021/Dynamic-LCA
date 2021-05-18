@@ -14,7 +14,7 @@
  */
 class MultilevelTreeNode {
     public:
-        static const int twoSubtreeMaxSize = 32;
+        static const int twoSubtreeMaxSize = 33;
         
         /* Standard Tree Variables */
         std::string data;
@@ -47,7 +47,7 @@ class MultilevelTreeNode {
         std::vector<MultilevelTreeNode*> intToSubtreeNode;
 
         /* The ith bit is 1 iff the node with ID i is an ancestor */
-        unsigned int ancestorWord;
+        unsigned long long ancestorWord;
 
         /* Given two nodes in the same 2-subtree, return their LCA */
         static MultilevelTreeNode* lcaWithinSubtree(MultilevelTreeNode* nodeX, MultilevelTreeNode* nodeY);
