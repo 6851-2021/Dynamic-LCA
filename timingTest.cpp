@@ -16,12 +16,42 @@ template <typename T>
 struct treeAndTiming {
     T* tree;
     std::vector<T*> nodes;
+    int naiveCreation;
     int staticCreation;
     int staticPreprocessing;
     int staticTotal;
     int incrementalTotal;
     int multilevelTotal;
 };
+
+/* Times the creation of a "naive" tree (no initialized values) */
+treeAndTiming<ExpensiveTreeNode> seqToNaiveTree(std::vector<int> leaves, std::vector<int> parents) {
+    auto t1 = high_resolution_clock::now();
+
+    int numNodes = leaves.size() + 1;
+    std::vector<ExpensiveTreeNode*> nodes(numNodes);
+    for (int i = 0; i < numNodes; ++i)
+    {
+        nodes[i] = new ExpensiveTreeNode();
+    }
+
+    ExpensiveTreeNode* root = nodes[parents[parents.size() - 1]];
+
+    for (int i = leaves.size() - 1; i >= 0; --i) {
+        nodes[parents[i]]->addLeafNoPreprocessing(nodes[leaves[i]]);
+    }
+
+    auto t2 = high_resolution_clock::now();
+    
+    auto total = duration_cast<microseconds>(t2 - t1);
+
+    treeAndTiming<ExpensiveTreeNode> toReturn;
+    toReturn.tree = root;
+    toReturn.nodes = nodes;
+    toReturn.naiveCreation = total.count();
+    return toReturn;
+}
+
 
 /* Times the creation of a static tree */
 treeAndTiming<ExpensiveTreeNode> seqToStaticTree(std::vector<int> leaves, std::vector<int> parents) {
@@ -122,6 +152,7 @@ int main()
     int numIter = 10;
     int numQueries = 1000;
 
+    unsigned long long avgNaive = 0;
     unsigned long long avgCreation = 0;
     unsigned long long avgStatic = 0;
     unsigned long long avgIncremental = 0;
@@ -141,10 +172,12 @@ int main()
 
         for (int j = 0; j < numIter; ++j)
         {
+            treeAndTiming<ExpensiveTreeNode> randNaive = seqToNaiveTree(leaves, parents);
             treeAndTiming<ExpensiveTreeNode> randStatic = seqToStaticTree(leaves, parents);
             treeAndTiming<ExpensiveTreeNode> randIncr = seqToIncrementalTree(leaves, parents);
             treeAndTiming<MultilevelTreeNode> randMultilevel = seqToIncrementalMultilevelTree(leaves, parents);
     
+            avgNaive += randNaive.naiveCreation;
             avgCreation += randStatic.staticCreation;
             avgStatic += randStatic.staticTotal;
             avgIncremental += randIncr.incrementalTotal;
@@ -179,11 +212,20 @@ int main()
                 avgMultilevelQuery += multiQ.count();
             }
 
+            std::cout <<" before deleting" << std::endl;
+            // randNaive.tree->deleteNode();
+
+            randStatic.tree->deleteNode();
+            std::cout <<" after deleting" << std::endl;
+            randIncr.tree->deleteNode();
+            randMultilevel.tree->deleteTree();
+
         }
     }
 
     std::cout << "-------" << std::endl;
-    std::cout << "Average Creation: " << avgCreation  * 1.0/(numIter * numRandTrees)<< std::endl;
+    std::cout << "Average Naive Creation: " << avgNaive  * 1.0/(numIter * numRandTrees)<< std::endl;
+    std::cout << "Average Static Creation: " << avgCreation  * 1.0/(numIter * numRandTrees)<< std::endl;
     std::cout << "Average Static:" << avgStatic  * 1.0/(numIter * numRandTrees)<< std::endl;
     std::cout << "Average Incr:" << avgIncremental  * 1.0/(numIter * numRandTrees)<< std::endl;
     std::cout << "Average Multilevel:" << avgMultilevel  * 1.0/(numIter * numRandTrees)<< std::endl;

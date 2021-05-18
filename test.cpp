@@ -38,9 +38,9 @@ void testStaticTree() {
 }
 
 void testAddNode() {
-    int numNodes = 10;
+    int numNodes = 100;
 
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < 100; ++i)
     {
         treeAndNodes<ExpensiveTreeNode> randTree = generateIncrementalTree(numNodes);
         // cout << "*** UNCOMPRESSED TREE ***" << endl;
@@ -74,7 +74,7 @@ void testAddNode() {
 }
 
 void testMultilevel() {
-    int numNodes = 1000;
+    int numNodes = 100;
 
     for (int i = 0; i < 100; ++i)
     {
@@ -99,8 +99,8 @@ void testMultilevel() {
     cout << "Passed 'multilevel' tests" << endl;
 }
 int main(){
-    // testStaticTree();
-    // testAddNode();
+    testStaticTree();
+    testAddNode();
     testMultilevel();
     return 0;
 }

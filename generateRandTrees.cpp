@@ -37,7 +37,7 @@ ExpensiveTreeNode* getRandLeaf(ExpensiveTreeNode* root);
 /*----------------------------------*/
 
 
-///// Methods to implement getStaticTree //////
+///// Methods to implement generateStaticTree //////
 
 vector<vector<int>> randInsertionSeq(int numNodes) {
     treeAndNodes<ExpensiveTreeNode> randTree = generateStaticTree(numNodes);
@@ -181,7 +181,6 @@ treeAndNodes<ExpensiveTreeNode> generateIncrementalTree(int numNodes) {
     }
 
     ExpensiveTreeNode* root = nodes[parents[parents.size() - 1]];
-    root->preprocess();
 
     for (int i = leaves.size() - 1; i >= 0; --i) {
         nodes[parents[i]]->add_leaf(nodes[leaves[i]]);

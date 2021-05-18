@@ -40,6 +40,9 @@ class ExpensiveTreeNode {
         /*        Basic Tree Operations        */
         /*-------------------------------------*/
 
+        /* Creates a new node without initializing any variables */
+        ExpensiveTreeNode();
+
         /* Creates a new node with the given ID */
         ExpensiveTreeNode(std::string id);
 
@@ -208,6 +211,14 @@ class ExpensiveTreeNode {
          */
         void recompress();
 
- };
+};
+
+/* A thin wrapper of ExpensiveTreeNode */
+class ExpensiveTree {
+    public:
+        ExpensiveTreeNode* root;
+
+        ExpensiveTree(std::string rootId);
+};
 
 #endif

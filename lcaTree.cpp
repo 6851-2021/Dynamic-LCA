@@ -134,14 +134,14 @@ void ExpensiveTreeNode::compressTree(bool isRoot){
 }
 
 void ExpensiveTreeNode::assignIntervals(){
-    this->startBuffered = 0;
-    this->endBuffered = c * pow(this->subtreeSize, e);
-    this->contAssignIntervals();
+    startBuffered = 0;
+    endBuffered = c * pow(subtreeSize, e);
+    contAssignIntervals();
 }
 
 void ExpensiveTreeNode::contAssignIntervals() {
     // Calculate fat preorder numbering
-    long long int buffer = pow(this->subtreeSize, e);
+    long long int buffer = pow(subtreeSize, e);
     start = startBuffered + buffer;
     end = endBuffered - buffer;
 
@@ -370,7 +370,6 @@ ExpensiveTreeNode::caTuple ExpensiveTreeNode::casCompressed(ExpensiveTreeNode* n
     }
 
     // Symetric computation to compute a_y
-    // TODO: Clean up this code
     v = nodeY->ancestors[i];
     if (v) {w = v->parent;} else {w = nodeY;}
 
@@ -447,27 +446,32 @@ ExpensiveTreeNode::caTuple ExpensiveTreeNode::naiveCas(ExpensiveTreeNode* nodeX,
 ///////////////////////////
 
 void ExpensiveTreeNode::init(std::string id) {
+    // Initialize values as if this node were the sole node in a tree
     nodeId = id;
     parent = NULL;
-    root = NULL;
+    root = this;
     uncompressedParent = NULL;
-    subtreeSize = 0;
-    dynamicSubtreeSize = 0;
-    isApex = false;
+    subtreeSize = 1;
+    dynamicSubtreeSize = 1;
+    isApex = true;
     heavyChild = NULL;
-    uncompressedLevel = -1;
-    isPreprocessed = false;
+    uncompressedLevel = 0;
+    isPreprocessed = true;
 
-    start = 0, startBuffered = 0, end = 0, endBuffered = 0;
-    largestChildEndBuffer = 0;
+    // Assign interval
+    startBuffered = 0;
+    endBuffered = c; // == c * subtreeSize^{e} because subtreeSize is 1
+    start = 1; // The buffer is subtreeSize^{e} == 1
+    end = c - 1;
+    largestChildEndBuffer = 1; // Equal to `start`
+
 
     associatedTwoSubtree = NULL;
-
 }
 
-// ExpensiveTreeNode::ExpensiveTreeNode* ExpensiveTreeNode::createRoot(std::string id) {
-//     ExpensiveTreeNode::
-// }
+ExpensiveTreeNode::ExpensiveTreeNode() {
+    parent = NULL;
+}
 
 ExpensiveTreeNode::ExpensiveTreeNode(std::string id) {
     init(id);

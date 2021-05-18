@@ -14,7 +14,7 @@
  */
 class MultilevelTreeNode {
     public:
-        static const int twoSubtreeMaxSize = 33;
+        static const int twoSubtreeMaxSize = 64;
         
         /* Standard Tree Variables */
         std::string data;

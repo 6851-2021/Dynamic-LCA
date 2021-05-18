@@ -33,12 +33,10 @@ void MultilevelTreeNode::add_leaf(MultilevelTreeNode* leaf) {
             // If subtree is now full...
             ExpensiveTreeNode* currSummary = new ExpensiveTreeNode(twoSubtreeRoot->data, twoSubtreeRoot);
             twoSubtreeRoot->summaryNode = currSummary;
-            currSummary->preprocess(); //TODO: fix
             if (twoSubtreeRoot->parent) {
                 ExpensiveTreeNode* parentSummary = twoSubtreeRoot->parent->twoSubtreeRoot->summaryNode;
                 parentSummary->add_leaf(currSummary);
-            } // Otherwise, summaryNode is the root...
-            // TODO: use create_tree from ExpensiveTreeNode
+            } // Otherwise, summaryNode is the root: leave parent as NULL
         }
     }
 }
