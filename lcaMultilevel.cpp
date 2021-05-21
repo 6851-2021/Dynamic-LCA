@@ -1,4 +1,5 @@
 #include "lcaMultilevel.hpp"
+#include <assert.h>
 #include <iostream>
 #include <bitset>
 #include <deque>

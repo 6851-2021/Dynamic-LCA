@@ -1,7 +1,10 @@
 #include "lcaTree.hpp"
+#include <assert.h>
+#include <math.h>
 #include <iostream>
 #include <deque>
 
+using std::abs;
 using std::cout;
 using std::endl;
 
